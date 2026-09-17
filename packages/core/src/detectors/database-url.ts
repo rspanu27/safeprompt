@@ -17,7 +17,8 @@ const SCHEMES = [
   'clickhouse',
 ];
 
-const CANDIDATE = new RegExp(`\\b(?:${SCHEMES.join('|')})://[^\\s"'\`<>]+`, 'gi');
+/** The lookbehind stops `https://host/v1/postgres://x` matching inside a path. */
+const CANDIDATE = new RegExp(`(?<![\\w/.-])(?:${SCHEMES.join('|')})://[^\\s"'\`<>]+`, 'gi');
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '0.0.0.0']);
 
@@ -99,7 +100,8 @@ function parse(url: string, offset: number): { components: Component[]; host: st
 
   const path = url.slice(authorityEnd);
   const database = /^\/([^/?#]+)/.exec(path);
-  if (database?.[1] !== undefined) {
+  // A bare number is a Redis database index, not a name worth hiding.
+  if (database?.[1] !== undefined && !/^\d+$/.test(database[1])) {
     components.push({
       value: database[1],
       start: offset + authorityEnd + 1,

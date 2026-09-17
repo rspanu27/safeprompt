@@ -1,5 +1,10 @@
 packages:
   - 'packages/*'
 
+# pnpm blocks dependency install scripts by default. esbuild's links its
+# platform binary and is required by tsx, which runs the evaluation harness.
+allowBuilds:
+  esbuild: true
+
 overrides:
   typescript: '^6'

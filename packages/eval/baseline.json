@@ -1,0 +1,40 @@
+{
+  "overall": {
+    "precision": 0.99,
+    "recall": 0.973
+  },
+  "detectors": {
+    "cloud-token": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "database-url": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "email": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "internal-hostname": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "jwt": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "password-assignment": {
+      "precision": 0.99,
+      "recall": 0.89
+    },
+    "private-ip": {
+      "precision": 0.99,
+      "recall": 0.99
+    },
+    "private-key": {
+      "precision": 0.99,
+      "recall": 0.99
+    }
+  }
+}

@@ -7,10 +7,11 @@ function privateRange(octets: readonly number[]): string | null {
   const [a, b] = octets;
   if (a === undefined || b === undefined) return null;
 
+  // Loopback is deliberately absent: 127.0.0.1 appears in every tutorial and
+  // reveals nothing about anyone's infrastructure.
   if (a === 10) return '10.0.0.0/8';
   if (a === 172 && b >= 16 && b <= 31) return '172.16.0.0/12';
   if (a === 192 && b === 168) return '192.168.0.0/16';
-  if (a === 127) return '127.0.0.0/8 loopback';
   if (a === 169 && b === 254) return '169.254.0.0/16 link-local';
   if (a === 100 && b >= 64 && b <= 127) return '100.64.0.0/10 carrier-grade NAT';
 

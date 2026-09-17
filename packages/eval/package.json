@@ -6,11 +6,16 @@
   "main": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "eval": "tsx src/run.ts"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "@safeprompt/core": "workspace:*"
   }
 }

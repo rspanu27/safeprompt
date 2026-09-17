@@ -6,13 +6,16 @@ const values = (text: string) => detect(text).map((f) => text.slice(f.span.start
 
 describe('privateIpDetector', () => {
   it('finds addresses in each private range', () => {
-    expect(values('10.1.2.3 172.16.0.1 192.168.1.1 127.0.0.1 169.254.1.1')).toEqual([
+    expect(values('10.1.2.3 172.16.0.1 192.168.1.1 169.254.1.1')).toEqual([
       '10.1.2.3',
       '172.16.0.1',
       '192.168.1.1',
-      '127.0.0.1',
       '169.254.1.1',
     ]);
+  });
+
+  it('ignores loopback, which appears in every tutorial', () => {
+    expect(detect('bound to 127.0.0.1:8080')).toHaveLength(0);
   });
 
   it('names the range it matched', () => {

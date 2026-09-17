@@ -6,8 +6,13 @@ import { isPlaceholder } from './shared/placeholders';
  * delimiter and must be longer, since a short unquoted value is more often a
  * variable name than a secret.
  */
+/**
+ * The separator may not cross a newline. With `\s*` a harmless name on one line
+ * swallows the assignment on the next, and the secret below it is never seen.
+ * Names may be quoted, as they are in JSON and in Python dicts.
+ */
 const ASSIGNMENT =
-  /\b([A-Za-z_][A-Za-z0-9_.-]{0,60})\s*[:=]\s*(?:"([^"\n]{4,})"|'([^'\n]{4,})'|([^\s"'\n,;{}()]{8,}))/g;
+  /["']?\b([A-Za-z_][A-Za-z0-9_.-]{0,60})\b["']?[ \t]*[:=][ \t]*(?:"([^"\n]{4,})"|'([^'\n]{4,})'|([^\s"'\n,;{}()]{8,}))/g;
 
 /**
  * Matched anywhere inside the name rather than against the whole of it, so

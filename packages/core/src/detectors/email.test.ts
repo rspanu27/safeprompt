@@ -13,7 +13,7 @@ function matchedValues(text: string): string[] {
 
 describe('emailDetector', () => {
   it('finds a plain address', () => {
-    expect(matchedValues('contact raul@example.com for access')).toEqual(['raul@example.com']);
+    expect(matchedValues('contact raul@acme.io for access')).toEqual(['raul@acme.io']);
   });
 
   it('finds several addresses in one input', () => {
@@ -27,7 +27,7 @@ describe('emailDetector', () => {
   });
 
   it('reports spans that slice back to the matched value', () => {
-    const text = 'from=alice@corp.com to=bob@corp.com';
+    const text = 'from=alice@corp.io to=bob@corp.io';
     for (const finding of detect(text)) {
       expect(text.slice(finding.span.start, finding.span.end)).toContain('@');
     }
@@ -37,13 +37,24 @@ describe('emailDetector', () => {
     expect(detect('no domain here@ or @there, and user@localhost')).toHaveLength(0);
   });
 
+  it('ignores domains RFC 2606 reserves for documentation', () => {
+    expect(detect('dana@example.com')).toHaveLength(0);
+    expect(detect('someone@sub.example.org')).toHaveLength(0);
+    expect(detect('user@my.invalid')).toHaveLength(0);
+  });
+
+  it('ignores credentials inside a URL, which are not addresses', () => {
+    expect(detect('postgres://admin:hunter2@db.acme.io:5432/app')).toHaveLength(0);
+    expect(detect('https://ghp_abc123@github.com/acme/api.git')).toHaveLength(0);
+  });
+
   it('describes why it fired', () => {
-    const [finding] = detect('someone@example.com');
+    const [finding] = detect('someone@acme.io');
     expect(finding?.evidence).not.toHaveLength(0);
   });
 
   it('classifies addresses as low-severity PII', () => {
-    const [finding] = detect('someone@example.com');
+    const [finding] = detect('someone@acme.io');
     expect(finding?.category).toBe('pii');
     expect(finding?.severity).toBe('low');
   });

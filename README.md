@@ -24,6 +24,22 @@ inside it is a compile error rather than a code review comment. The extension
 holds as little logic as possible — it calls `scanText(input)` and renders the
 result.
 
+## Detection quality
+
+Detectors are measured against a labelled corpus of 49 samples — 23 carrying real
+secrets, 26 hard negatives drawn from the places lookalikes actually appear:
+README setup instructions, git logs, UUIDs, lockfile hashes, minified bundles and
+base64 images.
+
+|         | Precision | Recall |    F1 |
+| ------- | --------: | -----: | ----: |
+| Overall |    100.0% |  98.3% | 0.991 |
+
+Per-detector figures are in [docs/EVALUATION.md](docs/EVALUATION.md), regenerated
+by `pnpm eval`. CI runs the same command against a committed baseline and fails
+the build if precision or recall regresses, so a detector cannot be loosened
+without the numbers moving in the open.
+
 ## Development
 
 Requires Node (see `.nvmrc`) and pnpm via Corepack.
