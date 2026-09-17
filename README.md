@@ -45,6 +45,25 @@ by `pnpm eval`. CI runs the same command against a committed baseline and fails
 the build if precision, recall or classification accuracy regresses, so a
 detector cannot be loosened without the numbers moving in the open.
 
+## Extension
+
+Manifest V3, built with WXT. Host permissions are enumerated for the four
+supported origins rather than requesting `<all_urls>`, and the only permission is
+`storage`, for settings — scanned content never reaches it.
+
+The warning modal mounts inside a **closed** shadow root. Page scripts cannot
+read through it to the redaction preview, and page CSS cannot reach in to
+restyle the buttons, which would be a security problem rather than a cosmetic
+one if `Paste original` could be made to look like `Cancel`.
+
+```bash
+pnpm --filter @safeprompt/extension dev
+```
+
+Then load `packages/extension/.output/chrome-mv3` as an unpacked extension at
+`chrome://extensions`. Paste interception arrives with the site adapters; for
+now `Ctrl+Shift+Y` on a supported site opens the modal against a fixed sample.
+
 ## Development
 
 Requires Node (see `.nvmrc`) and pnpm via Corepack.

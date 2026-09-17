@@ -59,7 +59,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['packages/extension/**/*.ts', 'packages/eval/**/*.ts'],
+    files: ['packages/extension/**/*.{ts,tsx}', 'packages/eval/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -76,7 +76,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['packages/extension/**/*.ts'],
+    files: ['packages/extension/**/*.{ts,tsx}'],
     rules: { 'no-console': 'error' },
   },
 
