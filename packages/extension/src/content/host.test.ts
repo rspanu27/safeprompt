@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createModalHost } from './host';
 
 describe('createModalHost', () => {
@@ -43,6 +43,40 @@ describe('createModalHost', () => {
 
     expect(host?.style.getPropertyValue('all')).toBe('initial');
     expect(host?.style.getPropertyPriority('all')).toBe('important');
+  });
+
+  it('does not leak interaction events to the page', () => {
+    // Every supported site has document-level click analytics. Composed events
+    // cross the shadow boundary, so without this the modal fires the page's
+    // telemetry on its way past.
+    const pageListener = vi.fn();
+    document.addEventListener('click', pageListener);
+    document.addEventListener('keydown', pageListener);
+
+    const { container } = createModalHost();
+    const button = document.createElement('button');
+    container.appendChild(button);
+
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+    button.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, composed: true }));
+
+    expect(pageListener).not.toHaveBeenCalled();
+
+    document.removeEventListener('click', pageListener);
+    document.removeEventListener('keydown', pageListener);
+  });
+
+  it('still delivers events to our own UI inside the shadow root', () => {
+    const ours = vi.fn();
+    const { container } = createModalHost();
+
+    const button = document.createElement('button');
+    button.addEventListener('click', ours);
+    container.appendChild(button);
+
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+
+    expect(ours).toHaveBeenCalledOnce();
   });
 
   it('replaces a previous host rather than stacking a second one', () => {

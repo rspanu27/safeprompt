@@ -1,11 +1,10 @@
-import { scanText } from '@safeprompt/core';
-import { createRoot } from 'react-dom/client';
 import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
 // Imported rather than relying on WXT's auto-import, so the file typechecks
 // without depending on generated declarations.
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { createModalHost } from '../content/host';
-import { DEMO_PASTE } from '../content/demo';
+import { completePaste, installInterceptor, type PasteDecision } from '../content/interceptor';
 import { WarningModal } from '../ui/modal/WarningModal';
 
 export default defineContentScript({
@@ -17,19 +16,11 @@ export default defineContentScript({
   ],
 
   main() {
-    // Paste interception arrives with the site adapters. Until then the modal
-    // is opened by hand, so the UI can be exercised without an editor involved.
-    window.addEventListener('keydown', (event) => {
-      const wanted = event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'y';
-      if (!wanted) return;
-
-      event.preventDefault();
-      showModal();
-    });
+    installInterceptor({ onHold: showModal });
   },
 });
 
-function showModal(): void {
+function showModal(decision: PasteDecision): void {
   const host = createModalHost();
   const root = createRoot(host.container);
 
@@ -38,11 +29,16 @@ function showModal(): void {
     host.remove();
   };
 
+  const choose = (text: string) => (): void => {
+    close();
+    completePaste(decision, text);
+  };
+
   root.render(
     createElement(WarningModal, {
-      result: scanText(DEMO_PASTE),
-      onPasteRedacted: close,
-      onPasteOriginal: close,
+      result: decision.result,
+      onPasteRedacted: choose(decision.result.redacted),
+      onPasteOriginal: choose(decision.original),
       onCancel: close,
     }),
   );

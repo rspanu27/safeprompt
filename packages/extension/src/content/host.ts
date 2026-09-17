@@ -32,7 +32,41 @@ export function createModalHost(doc: Document = document): ModalHost {
   const container = doc.createElement('div');
   shadow.appendChild(container);
 
+  containEvents(host);
   doc.body.appendChild(host);
 
   return { container, remove: () => host.remove() };
+}
+
+/**
+ * Most UI events are composed, so they cross the shadow boundary and reach the
+ * page's own listeners retargeted to the host. Every supported site has
+ * document-level click analytics, which would mean choosing "Cancel" on our
+ * modal quietly fires a beacon from a page we do not control.
+ *
+ * Listening on the host during the bubble phase stops that: our own handlers,
+ * which React attaches inside the shadow root, have already run by this point.
+ */
+function containEvents(host: HTMLElement): void {
+  const contained = [
+    'click',
+    'dblclick',
+    'mousedown',
+    'mouseup',
+    'pointerdown',
+    'pointerup',
+    'keydown',
+    'keyup',
+    'keypress',
+    'input',
+    'paste',
+    'focusin',
+    'focusout',
+  ];
+
+  for (const type of contained) {
+    host.addEventListener(type, (event) => {
+      event.stopPropagation();
+    });
+  }
 }
