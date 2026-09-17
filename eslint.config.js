@@ -26,6 +26,21 @@ export default tseslint.config(
   },
 
   {
+    rules: {
+      // Match TypeScript's own `noUnusedParameters` convention, where a leading
+      // underscore marks a parameter that exists to satisfy a signature.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+
+  {
     files: ['packages/core/**/*.ts'],
     rules: {
       'no-console': 'error',
