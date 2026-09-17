@@ -42,7 +42,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm test
 
-      # Fails if precision or recall drops below packages/eval/baseline.json.
+      # Fails if precision, recall or classification accuracy drops below
+      # packages/eval/baseline.json.
       - name: Evaluate detectors
         if: ${{ !cancelled() }}
         run: pnpm eval
+
+      # `pnpm eval` rewrites the report, so a diff here means a detector changed
+      # without the committed numbers being regenerated.
+      - name: Report is up to date
+        if: ${{ !cancelled() }}
+        run: git diff --exit-code docs/EVALUATION.md

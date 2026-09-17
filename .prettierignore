@@ -1,5 +1,10 @@
 dist
 coverage
-pnpm-lock.yaml
 .output
 .wxt
+
+# Generated, not authored. Formatting these means `pnpm eval` and
+# `pnpm format` fight over the same file.
+pnpm-lock.yaml
+docs/EVALUATION.md
+packages/eval/baseline.json
