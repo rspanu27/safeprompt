@@ -1,13 +1,9 @@
 import { classifyContext } from './context/classify';
 import { DETECTORS } from './detectors';
 import { redact } from './redaction/redact';
+import { resolveOverlaps } from './resolve/overlaps';
 import { assessRisk } from './scoring/risk';
-import type { Finding, ScanOptions, ScanResult } from './types';
-
-/** By position, longest first on ties — makes overlap handling deterministic. */
-function byPosition(a: Finding, b: Finding): number {
-  return a.span.start - b.span.start || b.span.end - a.span.end;
-}
+import type { ScanOptions, ScanResult } from './types';
 
 /**
  * Scan text for sensitive content.
@@ -19,9 +15,8 @@ export function scanText(input: string, options: ScanOptions = {}): ScanResult {
   const detectors = options.detectors ?? DETECTORS;
   const context = classifyContext(input);
 
-  const findings = detectors
-    .flatMap((detector) => detector.detect({ text: input, context }))
-    .sort(byPosition);
+  const matches = detectors.flatMap((detector) => detector.detect({ text: input, context }));
+  const findings = resolveOverlaps(matches);
 
   const risk = assessRisk(findings);
   const { text, placeholders } = redact(input, findings);

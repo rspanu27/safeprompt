@@ -94,6 +94,13 @@ describe('redact', () => {
     expect(result.text).toBe('[EMAIL_1]');
   });
 
+  it('does not lend one family another family’s token', () => {
+    // Collapsing these would leave the UI reporting an IP finding that appears
+    // nowhere in the redacted text.
+    const result = redact('aa', [finding(0, 1, 'EMAIL'), finding(1, 2, 'IP')]);
+    expect(result.text).toBe('[EMAIL_1][IP_1]');
+  });
+
   it('redacts a span at the very start and end of the input', () => {
     const text = 'a@b.co';
     expect(redact(text, [at(text, 'a@b.co')]).text).toBe('[EMAIL_1]');

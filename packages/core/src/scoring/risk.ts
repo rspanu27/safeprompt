@@ -1,3 +1,4 @@
+import { SEVERITY_RANK } from '../severity';
 import type { Finding, RiskAssessment, RiskContribution, Severity } from '../types';
 
 /** Gaps are wide so one critical finding outranks any realistic pile of low ones. */
@@ -18,8 +19,6 @@ const BANDS: readonly (readonly [number, Severity])[] = [
   [15, 'medium'],
   [0, 'low'],
 ];
-
-const RANK: Record<Severity, number> = { low: 0, medium: 1, high: 2, critical: 3 };
 
 function pointsFor(severity: Severity, count: number): number {
   const unit = POINTS[severity];
@@ -78,7 +77,7 @@ export function assessRisk(findings: readonly Finding[]): RiskAssessment {
 
   let level = bandFor(score);
   for (const entry of breakdown) {
-    if (RANK[entry.severity] > RANK[level]) level = entry.severity;
+    if (SEVERITY_RANK[entry.severity] > SEVERITY_RANK[level]) level = entry.severity;
   }
 
   return { score, level, breakdown };

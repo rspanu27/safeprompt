@@ -5,6 +5,7 @@
 
 export { scanText } from './pipeline';
 export { DETECTORS } from './detectors';
+export { rehydrate } from './redaction/redact';
 
 export type {
   Category,
