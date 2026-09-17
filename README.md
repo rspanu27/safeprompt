@@ -35,10 +35,15 @@ base64 images.
 | ------- | --------: | -----: | ----: |
 | Overall |    100.0% |  98.3% | 0.991 |
 
+Content is also classified — source code, `.env`, stack trace, JSON, SQL, log or
+prose — because severity depends on surroundings. An address in prose is a
+contact detail; the same address in a production log is a real customer. Context
+only ever raises a finding's severity, never lowers it, and records why.
+
 Per-detector figures are in [docs/EVALUATION.md](docs/EVALUATION.md), regenerated
 by `pnpm eval`. CI runs the same command against a committed baseline and fails
-the build if precision or recall regresses, so a detector cannot be loosened
-without the numbers moving in the open.
+the build if precision, recall or classification accuracy regresses, so a
+detector cannot be loosened without the numbers moving in the open.
 
 ## Development
 

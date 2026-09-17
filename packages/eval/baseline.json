@@ -36,5 +36,6 @@
       "precision": 0.99,
       "recall": 0.99
     }
-  }
+  },
+  "classificationAccuracy": 0.99
 }

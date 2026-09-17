@@ -1,3 +1,4 @@
+import type { ClassificationResult } from './classification';
 import type { Evaluation, Metrics } from './metrics';
 
 const pct = (value: number): string => `${(value * 100).toFixed(1)}%`;
@@ -6,7 +7,10 @@ function row(name: string, m: Metrics): string {
   return `| ${name} | ${pct(m.precision)} | ${pct(m.recall)} | ${m.f1.toFixed(3)} | ${m.truePositives} | ${m.falsePositives} | ${m.falseNegatives} |`;
 }
 
-export function renderMarkdown(evaluation: Evaluation): string {
+export function renderMarkdown(
+  evaluation: Evaluation,
+  classification: ClassificationResult,
+): string {
   const lines: string[] = [
     '# Detector evaluation',
     '',
@@ -45,10 +49,38 @@ export function renderMarkdown(evaluation: Evaluation): string {
     lines.push('');
   }
 
+  lines.push(
+    '## Context classification',
+    '',
+    `Accuracy: **${pct(classification.accuracy)}** (${classification.correct}/${classification.total}).`,
+    '',
+    'Context raises the severity of findings that sit in revealing surroundings —',
+    'an address in a production log is a real customer, not a contact detail. It',
+    'never lowers one.',
+    '',
+    'Read this number with more suspicion than the detector figures. The labels',
+    'were written by the same person as the classifier, on a corpus of fewer than',
+    'fifty samples, so it measures internal agreement rather than generalisation.',
+    'Its value is as a regression gate: it catches a change that quietly breaks',
+    'classification, which is what it is wired into CI to do.',
+    '',
+  );
+
+  if (classification.misclassified.length > 0) {
+    lines.push('Misclassified:', '');
+    for (const m of classification.misclassified) {
+      lines.push(`- \`${m.sampleId}\` — expected \`${m.expected}\`, got \`${m.actual}\``);
+    }
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 
-export function renderConsole(evaluation: Evaluation): string {
+export function renderConsole(
+  evaluation: Evaluation,
+  classification: ClassificationResult,
+): string {
   const width = Math.max(...evaluation.detectors.map((d) => d.detectorId.length), 8);
   const lines = [
     `corpus: ${evaluation.sampleCount} samples (${evaluation.positiveCount} positive, ${evaluation.negativeCount} negative)`,
@@ -64,6 +96,8 @@ export function renderConsole(evaluation: Evaluation): string {
   lines.push(
     '',
     `  ${'overall'.padEnd(width)}  P ${pct(evaluation.overall.precision).padStart(6)}  R ${pct(evaluation.overall.recall).padStart(6)}  F1 ${evaluation.overall.f1.toFixed(3)}`,
+    '',
+    `  context classification: ${pct(classification.accuracy)} (${classification.correct}/${classification.total})`,
   );
 
   return lines.join('\n');

@@ -1,4 +1,5 @@
 import { classifyContext } from './context/classify';
+import { applyContext } from './context/severity';
 import { DETECTORS } from './detectors';
 import { redact } from './redaction/redact';
 import { resolveOverlaps } from './resolve/overlaps';
@@ -16,7 +17,7 @@ export function scanText(input: string, options: ScanOptions = {}): ScanResult {
   const context = classifyContext(input);
 
   const matches = detectors.flatMap((detector) => detector.detect({ text: input, context }));
-  const findings = resolveOverlaps(matches);
+  const findings = applyContext(resolveOverlaps(matches), context);
 
   const risk = assessRisk(findings);
   const { text, placeholders } = redact(input, findings);

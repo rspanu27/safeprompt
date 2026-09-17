@@ -24,3 +24,17 @@ happened to win overlap resolution.
 
 - `password-assignment` on `pos-terraform-variable` — `Pl0kMj9Nh8Bg7`
 
+## Context classification
+
+Accuracy: **100.0%** (49/49).
+
+Context raises the severity of findings that sit in revealing surroundings —
+an address in a production log is a real customer, not a contact detail. It
+never lowers one.
+
+Read this number with more suspicion than the detector figures. The labels
+were written by the same person as the classifier, on a corpus of fewer than
+fifty samples, so it measures internal agreement rather than generalisation.
+Its value is as a regression gate: it catches a change that quietly breaks
+classification, which is what it is wired into CI to do.
+
