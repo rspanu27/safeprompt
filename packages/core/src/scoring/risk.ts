@@ -36,12 +36,42 @@ function bandFor(score: number): Severity {
   return 'low';
 }
 
+function summarise(detectorId: string, group: readonly Finding[]): RiskContribution | null {
+  // A single detector can report components of differing severity — a
+  // connection string yields a critical password beside a medium hostname — so
+  // decay is applied per severity rather than across the whole group.
+  const counts = new Map<Severity, number>();
+  let worst: Finding | undefined;
+
+  for (const finding of group) {
+    counts.set(finding.severity, (counts.get(finding.severity) ?? 0) + 1);
+    if (worst === undefined || SEVERITY_RANK[finding.severity] > SEVERITY_RANK[worst.severity]) {
+      worst = finding;
+    }
+  }
+
+  if (worst === undefined) return null;
+
+  let points = 0;
+  for (const [severity, count] of counts) {
+    points += pointsFor(severity, count);
+  }
+
+  return {
+    detectorId,
+    label: worst.label,
+    severity: worst.severity,
+    count: group.length,
+    points: Math.round(points * 10) / 10,
+  };
+}
+
 /**
  * Combine findings into a score with an explainable breakdown.
  *
  * The level is the higher of the score's band and the worst single finding.
  * Accumulation lets several mediums compound; the floor stops one critical
- * finding being reported as merely high just because 60 points sits below the
+ * finding being reported as merely high because 60 points sits below the
  * critical threshold.
  */
 export function assessRisk(findings: readonly Finding[]): RiskAssessment {
@@ -57,18 +87,9 @@ export function assessRisk(findings: readonly Finding[]): RiskAssessment {
   }
 
   const breakdown: RiskContribution[] = [];
-
   for (const [detectorId, group] of grouped) {
-    const first = group[0];
-    if (first === undefined) continue;
-
-    breakdown.push({
-      detectorId,
-      label: first.label,
-      severity: first.severity,
-      count: group.length,
-      points: Math.round(pointsFor(first.severity, group.length) * 10) / 10,
-    });
+    const entry = summarise(detectorId, group);
+    if (entry !== null) breakdown.push(entry);
   }
 
   breakdown.sort((a, b) => b.points - a.points);
