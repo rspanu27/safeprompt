@@ -1,4 +1,6 @@
-import { scanText, type ScanResult } from '@safeprompt/core';
+import { scanText, severityAtLeast, type ScanResult } from '@safeprompt/core';
+import { policyFor, type PastePolicy } from '../settings/policy';
+import { DEFAULT_SETTINGS } from '../settings/schema';
 import { resolveAdapter } from './adapters';
 import type { PasteTarget } from './adapters/types';
 import { failOpen } from './guard';
@@ -8,6 +10,8 @@ export interface PasteDecision {
   /** Exactly what was on the clipboard, so "paste original" needs no round-trip. */
   readonly original: string;
   readonly result: ScanResult;
+  /** Adapter id, e.g. `claude`. Recorded in history instead of the URL. */
+  readonly site: string;
   readonly target: PasteTarget;
   readonly selection: SelectionSnapshot;
 }
@@ -15,8 +19,12 @@ export interface PasteDecision {
 export interface InterceptorOptions {
   /** Called when a paste is held. The paste is already cancelled by this point. */
   readonly onHold: (decision: PasteDecision) => void;
+  /** Read at the moment of each paste, so settings changes apply immediately. */
+  readonly policy?: (site: string) => PastePolicy;
   readonly location?: URL;
 }
+
+const defaultPolicy = (site: string): PastePolicy => policyFor(DEFAULT_SETTINGS, site);
 
 /**
  * Decide whether to hold a paste.
@@ -34,13 +42,24 @@ export function handlePaste(
     if (text.trim().length === 0) return null;
 
     const url = options.location ?? new URL(window.location.href);
-    const target = resolveAdapter(url).resolveTarget(event);
+    const adapter = resolveAdapter(url);
+    const policy = (options.policy ?? defaultPolicy)(adapter.id);
+    if (!policy.active) return null;
+
+    const target = adapter.resolveTarget(event);
     if (target === null) return null;
 
-    const result = scanText(text);
+    const result = scanText(text, policy.scan);
     if (result.findings.length === 0) return null;
+    if (!severityAtLeast(result.risk.level, policy.threshold)) return null;
 
-    return { original: text, result, target, selection: captureSelection(target) };
+    return {
+      original: text,
+      result,
+      site: adapter.id,
+      target,
+      selection: captureSelection(target),
+    };
   });
 
   if (decision === null) return null;

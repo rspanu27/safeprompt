@@ -68,8 +68,24 @@ export const MODAL_CSS = `
     margin-bottom: 6px;
   }
 
-  .finding-label { font-size: 14px; font-weight: 500; }
-  .finding-why { margin: 4px 0 0; font-size: 12.5px; color: #64748b; line-height: 1.45; }
+  .finding-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .finding-parts { margin: 4px 0 0 16px; font-size: 12.5px; color: #334155; }
+  .finding-why { margin: 4px 0 0 16px; font-size: 12.5px; color: #64748b; line-height: 1.45; }
+
+  .notice {
+    margin: 0;
+    padding: 10px 24px;
+    font-size: 13px;
+    color: #9a3412;
+    background: #fff7ed;
+    border-top: 1px solid #fed7aa;
+  }
 
   pre {
     margin: 0;

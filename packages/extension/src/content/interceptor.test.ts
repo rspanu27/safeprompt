@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { PastePolicy } from '../settings/policy';
 import {
   cancelPaste,
   completePaste,
@@ -135,6 +136,85 @@ describe('handlePaste', () => {
       handlePaste(event, { onHold: vi.fn(), location: genericUrl });
       expect(event.defaultPrevented).toBe(false);
     }
+  });
+});
+
+describe('handlePaste with settings', () => {
+  const policy =
+    (overrides: Partial<PastePolicy> = {}) =>
+    (): PastePolicy => ({
+      active: true,
+      threshold: 'low',
+      scan: {},
+      ...overrides,
+    });
+
+  it('lets everything through when protection is off', () => {
+    const event = pasteEvent(SECRET, composer());
+    const decision = handlePaste(event, {
+      onHold: vi.fn(),
+      location: genericUrl,
+      policy: policy({ active: false }),
+    });
+
+    expect(decision).toBeNull();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('lets a paste below the threshold through', () => {
+    // An AWS key is high; with the bar at critical it is not held.
+    const event = pasteEvent(SECRET, composer());
+    const decision = handlePaste(event, {
+      onHold: vi.fn(),
+      location: genericUrl,
+      policy: policy({ threshold: 'critical' }),
+    });
+
+    expect(decision).toBeNull();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('holds a lone email only when the threshold allows it', () => {
+    const email = 'reach me at dana@acme.io';
+
+    const strict = handlePaste(pasteEvent(email, composer()), {
+      onHold: vi.fn(),
+      location: genericUrl,
+      policy: policy({ threshold: 'low' }),
+    });
+    const relaxed = handlePaste(pasteEvent(email, composer()), {
+      onHold: vi.fn(),
+      location: genericUrl,
+      policy: policy({ threshold: 'medium' }),
+    });
+
+    expect(strict).not.toBeNull();
+    expect(relaxed).toBeNull();
+  });
+
+  it('passes scan options through, so disabled categories stay quiet', () => {
+    const decision = handlePaste(pasteEvent(SECRET, composer()), {
+      onHold: vi.fn(),
+      location: genericUrl,
+      policy: policy({ scan: { categories: ['pii'] } }),
+    });
+
+    expect(decision).toBeNull();
+  });
+
+  it('asks for the policy of the site being pasted into', () => {
+    const el = composer();
+    el.id = 'prompt-textarea';
+    const lookup = vi.fn(policy());
+
+    const decision = handlePaste(pasteEvent(SECRET, el), {
+      onHold: vi.fn(),
+      location: url,
+      policy: lookup,
+    });
+
+    expect(lookup).toHaveBeenCalledWith('chatgpt');
+    expect(decision?.site).toBe('chatgpt');
   });
 });
 

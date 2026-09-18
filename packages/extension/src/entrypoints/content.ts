@@ -10,7 +10,14 @@ import {
   installInterceptor,
   type PasteDecision,
 } from '../content/interceptor';
+import { historyEntry, recordPaste, type PasteAction } from '../history/history';
+import { policyFor } from '../settings/policy';
+import { createSettingsCache, type SettingsCache } from '../settings/store';
+import { localArea, syncArea } from '../storage/browser';
 import { WarningModal } from '../ui/modal/WarningModal';
+
+const INSERT_FAILED =
+  'The editor did not accept the text, so nothing was pasted. You can copy the redacted version above by hand.';
 
 export default defineContentScript({
   matches: [
@@ -25,11 +32,28 @@ export default defineContentScript({
   runAt: 'document_start',
 
   main() {
-    installInterceptor({ onHold: showModal });
+    const settings = createSettingsCache(syncArea);
+
+    installInterceptor({
+      policy: (site) => policyFor(settings.current(), site),
+      onHold: (decision) => {
+        showModal(decision, settings);
+      },
+    });
   },
 });
 
-function showModal(decision: PasteDecision): void {
+function record(decision: PasteDecision, action: PasteAction, settings: SettingsCache): void {
+  if (!settings.current().history) return;
+
+  // Best effort. A full or unavailable storage area must not surface as an
+  // error in the middle of the user's paste.
+  recordPaste(localArea, historyEntry(decision.result, decision.site, action)).catch(
+    () => undefined,
+  );
+}
+
+function showModal(decision: PasteDecision, settings: SettingsCache): void {
   const host = createModalHost();
   const root = createRoot(host.container);
   let open = true;
@@ -42,20 +66,37 @@ function showModal(decision: PasteDecision): void {
     return true;
   };
 
-  const choose = (text: string) => (): void => {
-    if (close()) completePaste(decision, text);
+  const choose = (text: string, action: PasteAction) => (): void => {
+    if (!open) return;
+
+    // Insert before closing: if the editor refuses, the modal stays up with the
+    // redacted text visible rather than vanishing with nothing pasted.
+    if (!completePaste(decision, text)) {
+      render(INSERT_FAILED);
+      return;
+    }
+
+    close();
+    record(decision, action, settings);
   };
 
   const cancel = (): void => {
-    if (close()) cancelPaste(decision);
+    if (!close()) return;
+    cancelPaste(decision);
+    record(decision, 'cancelled', settings);
   };
 
-  root.render(
-    createElement(WarningModal, {
-      result: decision.result,
-      onPasteRedacted: choose(decision.result.redacted),
-      onPasteOriginal: choose(decision.original),
-      onCancel: cancel,
-    }),
-  );
+  function render(notice?: string): void {
+    root.render(
+      createElement(WarningModal, {
+        result: decision.result,
+        onPasteRedacted: choose(decision.result.redacted, 'redacted'),
+        onPasteOriginal: choose(decision.original, 'original'),
+        onCancel: cancel,
+        ...(notice === undefined ? {} : { notice }),
+      }),
+    );
+  }
+
+  render();
 }

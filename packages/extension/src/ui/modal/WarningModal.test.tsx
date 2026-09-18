@@ -13,18 +13,35 @@ const PASTE = 'DATABASE_URL=postgres://svc:Hq7Kd0Lm2Pn9@db-prod-01.internal:5432
 let container: HTMLElement;
 let root: Root;
 
-function render(handlers: Partial<Record<'redacted' | 'original' | 'cancel', () => void>> = {}) {
+interface RenderOptions {
+  redacted?: () => void;
+  original?: () => void;
+  cancel?: () => void;
+  notice?: string;
+  text?: string;
+}
+
+function render(options: RenderOptions = {}) {
   act(() => {
     root.render(
       <WarningModal
-        result={scanText(PASTE)}
-        onPasteRedacted={handlers.redacted ?? (() => undefined)}
-        onPasteOriginal={handlers.original ?? (() => undefined)}
-        onCancel={handlers.cancel ?? (() => undefined)}
+        result={scanText(options.text ?? PASTE)}
+        onPasteRedacted={options.redacted ?? (() => undefined)}
+        onPasteOriginal={options.original ?? (() => undefined)}
+        onCancel={options.cancel ?? (() => undefined)}
+        {...(options.notice === undefined ? {} : { notice: options.notice })}
       />,
     );
   });
 }
+
+const tab = (shiftKey = false): void => {
+  act(() => {
+    document.activeElement?.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true }),
+    );
+  });
+};
 
 const buttonLabelled = (name: string): HTMLButtonElement | undefined =>
   [...container.querySelectorAll('button')].find((b) => b.textContent === name);
@@ -50,8 +67,9 @@ describe('WarningModal', () => {
     expect(container.textContent).toContain('/100');
   });
 
-  it('names what was found', () => {
+  it('names what was found, including the parts of a grouped finding', () => {
     render();
+    expect(container.textContent).toContain('Database connection string');
     expect(container.textContent).toContain('Database password');
   });
 
@@ -201,6 +219,50 @@ describe('WarningModal', () => {
   it('takes focus so typing does not reach the composer behind it', () => {
     render();
     expect(document.activeElement?.textContent).toBe('Paste redacted');
+  });
+
+  it('shows one row for a connection string, not one per part', () => {
+    render();
+    const rows = container.querySelectorAll('li');
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.textContent).toContain('Database connection string');
+  });
+
+  it('keeps Tab inside the modal, wrapping from last to first', () => {
+    render();
+    expect(document.activeElement?.textContent).toBe('Paste redacted');
+
+    tab();
+    expect(document.activeElement?.textContent).toBe('Cancel');
+  });
+
+  it('wraps Shift+Tab from first to last', () => {
+    render();
+    tab();
+    tab(true);
+
+    expect(document.activeElement?.textContent).toBe('Paste redacted');
+  });
+
+  it('moves through the buttons in order', () => {
+    render();
+    tab();
+    tab();
+
+    expect(document.activeElement?.textContent).toBe('Paste original');
+  });
+
+  it('shows a notice when one is given, announced to assistive tech', () => {
+    render({ notice: 'The editor did not accept the text.' });
+    const notice = container.querySelector('[role="alert"]');
+
+    expect(notice?.textContent).toBe('The editor did not accept the text.');
+  });
+
+  it('shows no notice by default', () => {
+    render();
+    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 
   it('ships its own styles so it does not depend on the page', () => {

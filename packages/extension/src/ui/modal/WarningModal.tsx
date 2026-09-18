@@ -1,5 +1,6 @@
 import type { ScanResult, Severity } from '@safeprompt/core';
-import { useEffect, useRef, type MouseEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { groupFindings, type FindingGroup } from './group';
 import { MODAL_CSS } from './styles';
 
 /**
@@ -18,16 +19,26 @@ export interface WarningModalProps {
   readonly onPasteRedacted: () => void;
   readonly onPasteOriginal: () => void;
   readonly onCancel: () => void;
+  /** Shown above the buttons, e.g. when the editor refused the text. */
+  readonly notice?: string;
 }
 
-function summarise(result: ScanResult): string {
-  const count = result.findings.length;
-  const noun = count === 1 ? 'item' : 'items';
-  const worst = result.risk.breakdown[0];
-
+function summarise(groups: readonly FindingGroup[]): string {
+  const [worst] = groups;
   if (worst === undefined) return 'Nothing sensitive was found.';
 
-  return `${count} ${noun} found, the most serious being ${worst.label.toLowerCase()}. You can send a redacted version instead.`;
+  const found =
+    groups.length === 1
+      ? `Found: ${worst.name}.`
+      : `${groups.length} kinds of sensitive content found. Most serious: ${worst.name}.`;
+
+  return `${found} You can send a redacted version instead.`;
+}
+
+function detail(group: FindingGroup): string | null {
+  if (group.parts.length > 1) return group.parts.join(', ');
+  if (group.count > 1) return `${group.count} found`;
+  return null;
 }
 
 export function WarningModal({
@@ -35,9 +46,12 @@ export function WarningModal({
   onPasteRedacted,
   onPasteOriginal,
   onCancel,
+  notice,
 }: WarningModalProps) {
+  const panel = useRef<HTMLDivElement>(null);
   const primary = useRef<HTMLButtonElement>(null);
   const pressStartedOnBackdrop = useRef(false);
+  const groups = groupFindings(result.findings);
 
   useEffect(() => {
     // Without this, focus stays in the composer behind the modal and anything
@@ -46,7 +60,7 @@ export function WarningModal({
 
     // On window, in the capture phase, so Escape works wherever focus is and the
     // page never sees the keystroke — several of these sites bind Escape too.
-    const onKeyDown = (event: KeyboardEvent): void => {
+    const onKeyDown = (event: globalThis.KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -58,6 +72,29 @@ export function WarningModal({
       window.removeEventListener('keydown', onKeyDown, true);
     };
   }, [onCancel]);
+
+  useEffect(() => {
+    // A failed insertion restores focus to the editor first, so take it back.
+    if (notice !== undefined) primary.current?.focus();
+  }, [notice]);
+
+  // Tab cycles through the modal's own controls rather than walking out into
+  // the page behind it.
+  const onPanelKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Tab' || panel.current === null) return;
+
+    const controls = [...panel.current.querySelectorAll<HTMLElement>('button')];
+    if (controls.length === 0) return;
+
+    // Inside a shadow root, `document.activeElement` is the host, not the button.
+    const root = panel.current.getRootNode() as Document | ShadowRoot;
+    const index = controls.indexOf(root.activeElement as HTMLElement);
+    const last = controls.length - 1;
+    const next = event.shiftKey ? (index <= 0 ? last : index - 1) : index >= last ? 0 : index + 1;
+
+    event.preventDefault();
+    controls[next]?.focus();
+  };
 
   // Only a click that both starts and ends on the backdrop cancels. Selecting
   // text in the preview and releasing outside the panel produces a click on the
@@ -77,23 +114,34 @@ export function WarningModal({
       <style>{MODAL_CSS}</style>
 
       <div className="backdrop" onMouseDown={onBackdropMouseDown} onClick={onBackdropClick}>
-        <div className="panel" role="dialog" aria-modal="true" aria-labelledby="safeprompt-title">
+        <div
+          ref={panel}
+          className="panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="safeprompt-title"
+          onKeyDown={onPanelKeyDown}
+        >
           <header>
             <span className="level">
               <span className={`dot ${result.risk.level}`} />
               {result.risk.level} risk · {result.risk.score}/100 · {result.context}
             </span>
             <h1 id="safeprompt-title">{HEADLINE[result.risk.level]}</h1>
-            <p className="summary">{summarise(result)}</p>
+            <p className="summary">{summarise(groups)}</p>
           </header>
 
           <div className="body">
             <h2>What was found</h2>
             <ul>
-              {result.findings.map((finding) => (
-                <li key={`${finding.detectorId}-${finding.span.start}`}>
-                  <div className="finding-label">{finding.label}</div>
-                  <p className="finding-why">{finding.evidence.join('. ')}</p>
+              {groups.map((group) => (
+                <li key={group.detectorId}>
+                  <div className="finding-label">
+                    <span className={`dot ${group.severity}`} />
+                    {group.name}
+                  </div>
+                  {detail(group) !== null && <p className="finding-parts">{detail(group)}</p>}
+                  <p className="finding-why">{group.evidence.join('. ')}</p>
                 </li>
               ))}
             </ul>
@@ -101,6 +149,12 @@ export function WarningModal({
             <h2>Redacted version</h2>
             <pre>{result.redacted}</pre>
           </div>
+
+          {notice !== undefined && (
+            <p className="notice" role="alert">
+              {notice}
+            </p>
+          )}
 
           <footer>
             <button type="button" className="subtle" onClick={onCancel}>
