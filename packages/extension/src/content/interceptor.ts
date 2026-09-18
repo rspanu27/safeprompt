@@ -45,8 +45,11 @@ export function handlePaste(
 
   if (decision === null) return null;
 
-  // Only now, once everything that could fail has succeeded.
+  // Only now, once everything that could fail has succeeded. Cancelling is not
+  // enough on its own: ProseMirror reads the clipboard in its own paste handler
+  // and ignores defaultPrevented, so the editor has to never see the event.
   event.preventDefault();
+  event.stopImmediatePropagation();
   options.onHold(decision);
 
   return decision;
@@ -65,17 +68,24 @@ export function completePaste(decision: PasteDecision, text: string): boolean {
   });
 }
 
+/** Leave the editor as it was, with focus and caret back where the user left them. */
+export function cancelPaste(decision: PasteDecision): void {
+  failOpen(undefined, () => {
+    decision.selection.restore();
+  });
+}
+
 export function installInterceptor(options: InterceptorOptions): () => void {
   const listener = (event: Event): void => {
-    if (!(event instanceof ClipboardEvent)) return;
-    handlePaste(event, options);
+    handlePaste(event as ClipboardEvent, options);
   };
 
-  // Capture phase: editors call stopPropagation on their own paste handling, so
-  // by the bubble phase the event is long gone.
-  document.addEventListener('paste', listener, true);
+  // Window, capture phase: the first point in the event's path, ahead of every
+  // document and element listener the page or its editor registers, whatever
+  // order they were added in.
+  window.addEventListener('paste', listener, true);
 
   return () => {
-    document.removeEventListener('paste', listener, true);
+    window.removeEventListener('paste', listener, true);
   };
 }

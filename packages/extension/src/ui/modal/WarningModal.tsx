@@ -1,4 +1,5 @@
 import type { ScanResult, Severity } from '@safeprompt/core';
+import { useEffect, useRef, type MouseEvent } from 'react';
 import { MODAL_CSS } from './styles';
 
 /**
@@ -35,11 +36,47 @@ export function WarningModal({
   onPasteOriginal,
   onCancel,
 }: WarningModalProps) {
+  const primary = useRef<HTMLButtonElement>(null);
+  const pressStartedOnBackdrop = useRef(false);
+
+  useEffect(() => {
+    // Without this, focus stays in the composer behind the modal and anything
+    // typed goes into it. Enter then takes the safe option.
+    primary.current?.focus();
+
+    // On window, in the capture phase, so Escape works wherever focus is and the
+    // page never sees the keystroke — several of these sites bind Escape too.
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onCancel();
+    };
+
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true);
+    };
+  }, [onCancel]);
+
+  // Only a click that both starts and ends on the backdrop cancels. Selecting
+  // text in the preview and releasing outside the panel produces a click on the
+  // backdrop too, and that should not throw the paste away.
+  const onBackdropMouseDown = (event: MouseEvent): void => {
+    pressStartedOnBackdrop.current = event.target === event.currentTarget;
+  };
+
+  const onBackdropClick = (event: MouseEvent): void => {
+    const outside = pressStartedOnBackdrop.current && event.target === event.currentTarget;
+    pressStartedOnBackdrop.current = false;
+    if (outside) onCancel();
+  };
+
   return (
     <>
       <style>{MODAL_CSS}</style>
 
-      <div className="backdrop">
+      <div className="backdrop" onMouseDown={onBackdropMouseDown} onClick={onBackdropClick}>
         <div className="panel" role="dialog" aria-modal="true" aria-labelledby="safeprompt-title">
           <header>
             <span className="level">
@@ -72,7 +109,7 @@ export function WarningModal({
             <button type="button" onClick={onPasteOriginal}>
               Paste original
             </button>
-            <button type="button" className="primary" onClick={onPasteRedacted}>
+            <button type="button" className="primary" ref={primary} onClick={onPasteRedacted}>
               Paste redacted
             </button>
           </footer>

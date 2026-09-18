@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { completePaste, handlePaste, type PasteDecision } from './interceptor';
+import {
+  cancelPaste,
+  completePaste,
+  handlePaste,
+  installInterceptor,
+  type PasteDecision,
+} from './interceptor';
 
 const SECRET = 'AWS_ACCESS_KEY_ID=AKIA2E0RZXQ7MLPKWV3B';
 const CLEAN = 'why does my build take four minutes';
@@ -129,6 +135,98 @@ describe('handlePaste', () => {
       handlePaste(event, { onHold: vi.fn(), location: genericUrl });
       expect(event.defaultPrevented).toBe(false);
     }
+  });
+});
+
+describe('installInterceptor', () => {
+  /** Dispatched for real, so it travels window → document → element. */
+  function realPaste(text: string): Event {
+    const event = new Event('paste', { bubbles: true, cancelable: true, composed: true });
+    Object.defineProperty(event, 'clipboardData', { value: { getData: () => text } });
+    return event;
+  }
+
+  it('stops a held paste reaching an editor that ignores defaultPrevented', () => {
+    // How ProseMirror behaves: it reads the clipboard in its own handler and
+    // inserts regardless of whether anyone cancelled the event.
+    const uninstall = installInterceptor({ onHold: vi.fn(), location: genericUrl });
+    const el = composer();
+    const editor = vi.fn();
+    el.addEventListener('paste', editor);
+
+    el.dispatchEvent(realPaste(SECRET));
+
+    expect(editor).not.toHaveBeenCalled();
+    uninstall();
+  });
+
+  it('runs ahead of page listeners registered before it', () => {
+    const page = vi.fn();
+    document.addEventListener('paste', page, true);
+
+    const uninstall = installInterceptor({ onHold: vi.fn(), location: genericUrl });
+    composer().dispatchEvent(realPaste(SECRET));
+
+    expect(page).not.toHaveBeenCalled();
+    uninstall();
+    document.removeEventListener('paste', page, true);
+  });
+
+  it('lets a clean paste through to the editor', () => {
+    const uninstall = installInterceptor({ onHold: vi.fn(), location: genericUrl });
+    const el = composer();
+    const editor = vi.fn();
+    el.addEventListener('paste', editor);
+
+    el.dispatchEvent(realPaste(CLEAN));
+
+    expect(editor).toHaveBeenCalledOnce();
+    uninstall();
+  });
+
+  it('stops listening once uninstalled', () => {
+    const onHold = vi.fn();
+    installInterceptor({ onHold, location: genericUrl })();
+
+    composer().dispatchEvent(realPaste(SECRET));
+    expect(onHold).not.toHaveBeenCalled();
+  });
+});
+
+describe('cancelPaste', () => {
+  it('returns focus and caret to the editor without inserting anything', () => {
+    const el = composer();
+    el.value = 'draft';
+    el.setSelectionRange(2, 2);
+
+    const decision = handlePaste(pasteEvent(SECRET, el), {
+      onHold: vi.fn(),
+      location: genericUrl,
+    });
+    if (decision === null) throw new Error('expected the paste to be held');
+
+    document.body.focus();
+    cancelPaste(decision);
+
+    expect(el.value).toBe('draft');
+    expect(document.activeElement).toBe(el);
+    expect(el.selectionStart).toBe(2);
+  });
+
+  it('does not throw if the editor has gone', () => {
+    const decision = handlePaste(pasteEvent(SECRET, composer()), {
+      onHold: vi.fn(),
+      location: genericUrl,
+    });
+    if (decision === null) throw new Error('expected the paste to be held');
+
+    vi.spyOn(decision.selection, 'restore').mockImplementation(() => {
+      throw new Error('element detached');
+    });
+
+    expect(() => {
+      cancelPaste(decision);
+    }).not.toThrow();
   });
 });
 

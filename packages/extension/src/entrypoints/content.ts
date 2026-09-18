@@ -4,7 +4,12 @@ import { createRoot } from 'react-dom/client';
 // without depending on generated declarations.
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { createModalHost } from '../content/host';
-import { completePaste, installInterceptor, type PasteDecision } from '../content/interceptor';
+import {
+  cancelPaste,
+  completePaste,
+  installInterceptor,
+  type PasteDecision,
+} from '../content/interceptor';
 import { WarningModal } from '../ui/modal/WarningModal';
 
 export default defineContentScript({
@@ -15,6 +20,10 @@ export default defineContentScript({
     'https://gemini.google.com/*',
   ],
 
+  // Before any page script runs, so the paste listener is registered ahead of
+  // anything the page adds to window itself.
+  runAt: 'document_start',
+
   main() {
     installInterceptor({ onHold: showModal });
   },
@@ -23,15 +32,22 @@ export default defineContentScript({
 function showModal(decision: PasteDecision): void {
   const host = createModalHost();
   const root = createRoot(host.container);
+  let open = true;
 
-  const close = (): void => {
+  const close = (): boolean => {
+    if (!open) return false;
+    open = false;
     root.unmount();
     host.remove();
+    return true;
   };
 
   const choose = (text: string) => (): void => {
-    close();
-    completePaste(decision, text);
+    if (close()) completePaste(decision, text);
+  };
+
+  const cancel = (): void => {
+    if (close()) cancelPaste(decision);
   };
 
   root.render(
@@ -39,7 +55,7 @@ function showModal(decision: PasteDecision): void {
       result: decision.result,
       onPasteRedacted: choose(decision.result.redacted),
       onPasteOriginal: choose(decision.original),
-      onCancel: close,
+      onCancel: cancel,
     }),
   );
 }
