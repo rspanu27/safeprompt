@@ -51,6 +51,7 @@ function inspectHeader(segment: string): { alg: string; typ: string | null } | n
 
 export const jwtDetector: Detector = {
   id: 'jwt',
+  name: 'JSON Web Token',
   category: 'credential',
   severity: 'high',
   description: 'JSON Web Tokens, validated by decoding the header.',

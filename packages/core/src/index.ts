@@ -7,6 +7,8 @@ export { scanText } from './pipeline';
 export { DETECTORS } from './detectors';
 export { classifyContext } from './context/classify';
 export { rehydrate } from './redaction/redact';
+export { allowlistPatternProblem } from './allowlist';
+export { SEVERITY_RANK, severityAtLeast } from './severity';
 
 export type {
   Category,

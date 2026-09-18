@@ -23,6 +23,7 @@ function insideUrlAuthority(text: string, start: number): boolean {
 
 export const emailDetector: Detector = {
   id: 'email',
+  name: 'Email address',
   category: 'pii',
   severity: 'low',
   description: 'Email addresses.',

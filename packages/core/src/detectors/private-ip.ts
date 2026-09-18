@@ -20,6 +20,7 @@ function privateRange(octets: readonly number[]): string | null {
 
 export const privateIpDetector: Detector = {
   id: 'private-ip',
+  name: 'Private IP address',
   category: 'infrastructure',
   severity: 'medium',
   description: 'Private, loopback and link-local IPv4 addresses.',

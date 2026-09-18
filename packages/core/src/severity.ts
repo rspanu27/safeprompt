@@ -7,3 +7,7 @@ export const SEVERITY_RANK: Record<Severity, number> = {
   high: 2,
   critical: 3,
 };
+
+export function severityAtLeast(level: Severity, threshold: Severity): boolean {
+  return SEVERITY_RANK[level] >= SEVERITY_RANK[threshold];
+}

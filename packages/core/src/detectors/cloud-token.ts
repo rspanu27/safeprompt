@@ -69,6 +69,7 @@ const RULES: readonly Rule[] = [
 
 export const cloudTokenDetector: Detector = {
   id: 'cloud-token',
+  name: 'API key or token',
   category: 'secret',
   severity: 'high',
   description: 'Provider-issued API keys and tokens identified by their prefix.',

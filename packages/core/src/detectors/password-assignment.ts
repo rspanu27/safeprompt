@@ -23,6 +23,7 @@ const SECRET_NAME =
 
 export const passwordAssignmentDetector: Detector = {
   id: 'password-assignment',
+  name: 'Assigned secret',
   category: 'credential',
   severity: 'high',
   description: 'Secrets assigned to a password- or key-shaped name.',

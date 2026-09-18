@@ -1,3 +1,4 @@
+import { compileAllowlist } from './allowlist';
 import { classifyContext } from './context/classify';
 import { applyContext } from './context/severity';
 import { DETECTORS } from './detectors';
@@ -14,9 +15,17 @@ import type { ScanOptions, ScanResult } from './types';
  */
 export function scanText(input: string, options: ScanOptions = {}): ScanResult {
   const detectors = options.detectors ?? DETECTORS;
+  const categories = options.categories === undefined ? null : new Set(options.categories);
+  const allowed = compileAllowlist(options.allowlist ?? []);
   const context = classifyContext(input);
 
-  const matches = detectors.flatMap((detector) => detector.detect({ text: input, context }));
+  // Filtered before resolution, so a disabled or allowlisted finding cannot
+  // suppress an overlapping one the user still wants to see.
+  const matches = detectors
+    .flatMap((detector) => detector.detect({ text: input, context }))
+    .filter((f) => categories === null || categories.has(f.category))
+    .filter((f) => !allowed(input.slice(f.span.start, f.span.end)));
+
   const findings = applyContext(resolveOverlaps(matches), context);
 
   const risk = assessRisk(findings);

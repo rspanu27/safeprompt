@@ -12,6 +12,7 @@ const CLUSTER_SUFFIX = /\b[a-z0-9-]+\.[a-z0-9-]+\.svc(?:\.cluster\.local)?\b/gi;
 
 export const internalHostnameDetector: Detector = {
   id: 'internal-hostname',
+  name: 'Internal hostname',
   category: 'infrastructure',
   severity: 'medium',
   description: 'Hostnames on reserved internal domains.',

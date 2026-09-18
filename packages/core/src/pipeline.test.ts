@@ -38,6 +38,7 @@ describe('scanText', () => {
       id: 'noop',
       category: 'secret',
       severity: 'critical',
+      name: 'No-op',
       description: 'Finds nothing.',
       detect: () => [],
     };
@@ -46,6 +47,32 @@ describe('scanText', () => {
 
     expect(result.findings).toHaveLength(0);
     expect(result.redacted).toBe('alice@corp.com');
+  });
+
+  it('drops findings in a disabled category', () => {
+    const result = scanText('ping alice@acme.io at 10.0.4.17', { categories: ['infrastructure'] });
+
+    expect(result.findings.map((f) => f.detectorId)).toEqual(['private-ip']);
+    expect(result.redacted).toContain('alice@acme.io');
+  });
+
+  it('leaves allowlisted values alone', () => {
+    const result = scanText('db at staging-db.internal and prod-db.internal', {
+      allowlist: ['staging-*.internal'],
+    });
+
+    expect(result.redacted).toContain('staging-db.internal');
+    expect(result.redacted).not.toContain('prod-db.internal');
+  });
+
+  it('lets a finding surface when the category that would absorb it is disabled', () => {
+    // The connection string's host normally absorbs the internal-hostname
+    // finding on the same span. Filtering after resolution would drop both.
+    const text = 'postgres://app:Hq7Kd0Lm2Pn9@db.internal:5432/orders';
+    const result = scanText(text, { categories: ['infrastructure'] });
+
+    expect(result.findings.map((f) => f.detectorId)).toEqual(['internal-hostname']);
+    expect(result.redacted).toContain('[HOST_1]');
   });
 
   it('reports the classified context', () => {

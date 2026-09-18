@@ -9,6 +9,7 @@ function detectorFor(id: string, needle: string): Detector {
     id,
     category: 'secret',
     severity: 'high',
+    name: id,
     description: `finds ${needle}`,
     detect({ text }) {
       const findings = [];

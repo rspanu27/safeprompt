@@ -9,6 +9,7 @@ const BEGIN_MARKER = /-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY(?: BLOCK)?-----/g;
 
 export const privateKeyDetector: Detector = {
   id: 'private-key',
+  name: 'Private key',
   category: 'secret',
   severity: 'critical',
   description: 'PEM-encoded private keys, including RSA, EC, OpenSSH and PGP.',

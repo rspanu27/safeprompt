@@ -51,6 +51,8 @@ export interface DetectorInput {
 /** An independent detection rule. Pure: same input, same findings. */
 export interface Detector {
   readonly id: string;
+  /** Display name for grouping findings and listing detectors in settings. */
+  readonly name: string;
   readonly category: Category;
   readonly severity: Severity;
   /** One line, shown in settings. */
@@ -87,4 +89,8 @@ export interface ScanResult {
 export interface ScanOptions {
   /** Defaults to the full registry. A test and settings seam. */
   readonly detectors?: readonly Detector[];
+  /** Categories to report. Defaults to all of them. */
+  readonly categories?: readonly Category[];
+  /** Values the user has marked as fine. `*` matches any run of characters. */
+  readonly allowlist?: readonly string[];
 }

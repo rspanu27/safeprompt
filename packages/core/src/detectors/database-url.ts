@@ -116,6 +116,7 @@ function parse(url: string, offset: number): { components: Component[]; host: st
 
 export const databaseUrlDetector: Detector = {
   id: 'database-url',
+  name: 'Database connection string',
   category: 'credential',
   severity: 'critical',
   description: 'Database connection strings, redacted component by component.',
