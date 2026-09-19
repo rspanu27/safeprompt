@@ -39,8 +39,11 @@ jobs:
           path: packages/demo/dist
 
   # Only this job can publish, and it never sees the source or the install.
+  # Skipped while the repository is private (Pages is not available) and on
+  # forks, where it would fail for want of a Pages site.
   deploy:
     needs: build
+    if: ${{ github.repository == 'rspanu27/safeprompt' && !github.event.repository.private }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
