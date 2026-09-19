@@ -3,6 +3,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-react'],
+  zip: { artifactTemplate: 'safeprompt-{{version}}-{{browser}}.zip' },
 
   manifest: {
     name: 'SafePrompt',
