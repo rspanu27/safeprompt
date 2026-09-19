@@ -3,12 +3,19 @@ import type { Detector, Finding } from '../types';
 /**
  * Suffixes reserved for private networks. Leaking these maps out internal
  * infrastructure even when no credential is attached.
+ *
+ * `\b` alone is not enough of an anchor: every `.` is a word boundary, so on
+ * `a.a.a.a…` a match was attempted at every label and each attempt walked the
+ * rest of the run — quadratic. The lookbehind allows only the start of the run.
  */
 const INTERNAL_SUFFIX =
-  /\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(internal|intranet|corp|lan|localdomain|local)\b/gi;
+  /(?<![a-z0-9.-])(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(internal|intranet|corp|lan|localdomain|local)\b/gi;
 
-/** `svc.cluster.local` is the Kubernetes in-cluster form. */
-const CLUSTER_SUFFIX = /\b[a-z0-9-]+\.[a-z0-9-]+\.svc(?:\.cluster\.local)?\b/gi;
+/**
+ * `svc.cluster.local` is the Kubernetes in-cluster form. Anchored like the one
+ * above, so the labels before `svc` are open-ended rather than fixed at two.
+ */
+const CLUSTER_SUFFIX = /(?<![a-z0-9.-])(?:[a-z0-9-]+\.){2,}svc(?:\.cluster\.local)?\b/gi;
 
 export const internalHostnameDetector: Detector = {
   id: 'internal-hostname',

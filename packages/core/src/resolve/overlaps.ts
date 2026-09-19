@@ -1,10 +1,6 @@
 import { SEVERITY_RANK } from '../severity';
 import type { Finding } from '../types';
 
-function overlaps(a: Finding, b: Finding): boolean {
-  return a.span.start < b.span.end && b.span.start < a.span.end;
-}
-
 /** Severity, then span length, then position. Detector id breaks the last tie. */
 function byPriority(a: Finding, b: Finding): number {
   return (
@@ -15,6 +11,25 @@ function byPriority(a: Finding, b: Finding): number {
   );
 }
 
+interface Accepted {
+  readonly finding: Finding;
+  /** When it was accepted. The earliest-accepted winner absorbs a clash. */
+  readonly order: number;
+  readonly absorbed: string[];
+}
+
+/** Index of the first accepted span starting at or after `start`. */
+function lowerBound(accepted: readonly Accepted[], start: number): number {
+  let low = 0;
+  let high = accepted.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if ((accepted[mid]?.finding.span.start ?? Infinity) < start) low = mid + 1;
+    else high = mid;
+  }
+  return low;
+}
+
 /**
  * Reduce findings to a non-overlapping set.
  *
@@ -22,38 +37,46 @@ function byPriority(a: Finding, b: Finding): number {
  * hostname detectors at once. Redacting all three corrupts the output; showing
  * all three turns one leak into several. The winner keeps a note of what it
  * absorbed so the UI can still mention the password.
+ *
+ * Accepted spans are kept sorted and disjoint, so a clash can only be with the
+ * neighbours of a candidate's position — found by binary search rather than by
+ * comparing against every winner so far, which was quadratic in large pastes.
  */
 export function resolveOverlaps(findings: readonly Finding[]): readonly Finding[] {
   const candidates = [...findings].sort(byPriority);
-
-  const accepted: Finding[] = [];
-  const absorbedBy = new Map<number, string[]>();
+  const accepted: Accepted[] = [];
+  let accepts = 0;
 
   for (const candidate of candidates) {
-    const clashIndex = accepted.findIndex((winner) => overlaps(winner, candidate));
+    const { start, end } = candidate.span;
+    const index = lowerBound(accepted, start);
 
-    if (clashIndex === -1) {
-      accepted.push(candidate);
-      continue;
+    // The span before can reach into the candidate; any after it can start
+    // inside the candidate. Nothing further away can touch it.
+    let owner: Accepted | undefined;
+    const before = accepted[index - 1];
+    if (before !== undefined && before.finding.span.end > start) owner = before;
+
+    for (let i = index; i < accepted.length; i += 1) {
+      const after = accepted[i];
+      if (after === undefined || after.finding.span.start >= end) break;
+      if (owner === undefined || after.order < owner.order) owner = after;
     }
 
-    const existing = absorbedBy.get(clashIndex);
-    if (existing === undefined) {
-      absorbedBy.set(clashIndex, [candidate.detectorId]);
-    } else if (!existing.includes(candidate.detectorId)) {
-      existing.push(candidate.detectorId);
+    if (owner === undefined) {
+      accepted.splice(index, 0, { finding: candidate, order: accepts, absorbed: [] });
+      accepts += 1;
+    } else if (!owner.absorbed.includes(candidate.detectorId)) {
+      owner.absorbed.push(candidate.detectorId);
     }
   }
 
-  return accepted
-    .map((finding, index) => {
-      const absorbed = absorbedBy.get(index);
-      if (absorbed === undefined) return finding;
-
-      return {
-        ...finding,
-        evidence: [...finding.evidence, `Also matched by: ${absorbed.sort().join(', ')}`],
-      };
-    })
-    .sort((a, b) => a.span.start - b.span.start);
+  return accepted.map(({ finding, absorbed }) =>
+    absorbed.length === 0
+      ? finding
+      : {
+          ...finding,
+          evidence: [...finding.evidence, `Also matched by: ${absorbed.sort().join(', ')}`],
+        },
+  );
 }

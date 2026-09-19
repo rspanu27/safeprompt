@@ -53,3 +53,9 @@ jobs:
       - name: Report is up to date
         if: ${{ !cancelled() }}
         run: git diff --exit-code docs/EVALUATION.md
+
+      # Fails if a scan exceeds its time budget, including on inputs built to
+      # make regular expressions backtrack.
+      - name: Benchmark
+        if: ${{ !cancelled() }}
+        run: pnpm bench

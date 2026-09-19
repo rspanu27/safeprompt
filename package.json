@@ -12,6 +12,7 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "eval": "pnpm --filter @safeprompt/eval eval",
+    "bench": "pnpm --filter @safeprompt/eval bench",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
