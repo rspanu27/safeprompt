@@ -20,8 +20,10 @@ export default tseslint.config(
     },
   },
 
+  // Build and tooling scripts sit outside every package's tsconfig, so
+  // type-aware rules have no program to run against.
   {
-    files: ['**/*.config.{ts,js}', 'eslint.config.js'],
+    files: ['**/*.config.{ts,js}', 'eslint.config.js', 'packages/*/scripts/**/*.ts'],
     ...tseslint.configs.disableTypeChecked,
   },
 
@@ -59,7 +61,11 @@ export default tseslint.config(
   },
 
   {
-    files: ['packages/extension/**/*.{ts,tsx}', 'packages/eval/**/*.ts'],
+    files: [
+      'packages/extension/**/*.{ts,tsx}',
+      'packages/demo/**/*.{ts,tsx}',
+      'packages/eval/**/*.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -75,8 +81,9 @@ export default tseslint.config(
     },
   },
 
+  // Shipped code only: build scripts are expected to print.
   {
-    files: ['packages/extension/**/*.{ts,tsx}'],
+    files: ['packages/extension/src/**/*.{ts,tsx}'],
     rules: { 'no-console': 'error' },
   },
 

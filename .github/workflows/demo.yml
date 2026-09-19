@@ -1,0 +1,53 @@
+name: Demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/core/**'
+      - 'packages/demo/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/demo.yml'
+  workflow_dispatch:
+
+# One deployment at a time, and never cancel one halfway through publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @safeprompt/demo build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/demo/dist
+
+  # Only this job can publish, and it never sees the source or the install.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
