@@ -13,7 +13,7 @@ import {
 import { historyEntry, recordPaste, type PasteAction } from '../history/history';
 import { policyFor } from '../settings/policy';
 import { createSettingsCache, type SettingsCache } from '../settings/store';
-import { localArea, syncArea } from '../storage/browser';
+import { localArea } from '../storage/browser';
 import { WarningModal } from '../ui/modal/WarningModal';
 
 const INSERT_FAILED =
@@ -32,7 +32,7 @@ export default defineContentScript({
   runAt: 'document_start',
 
   main() {
-    const settings = createSettingsCache(syncArea);
+    const settings = createSettingsCache(localArea);
 
     installInterceptor({
       policy: (site) => policyFor(settings.current(), site),

@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { resolveAdapter } from '../../content/adapters';
 import { SITES, type SiteId } from '../../settings/schema';
-import { localArea, syncArea } from '../../storage/browser';
+import { localArea } from '../../storage/browser';
 import { Popup } from '../../ui/popup/Popup';
 import '../../ui/pages.css';
 
@@ -24,7 +24,7 @@ async function activeSite(): Promise<SiteId | null> {
 function mount(container: HTMLElement, site: SiteId | null): void {
   createRoot(container).render(
     <Popup
-      settingsArea={syncArea}
+      settingsArea={localArea}
       historyArea={localArea}
       site={site}
       onOpenSettings={() => {
