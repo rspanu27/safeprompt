@@ -1,72 +1,121 @@
 # SafePrompt
 
 [![CI](https://github.com/rspanu27/safeprompt/actions/workflows/ci.yml/badge.svg)](https://github.com/rspanu27/safeprompt/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
-Local-first Chrome extension that detects secrets and PII in text pasted into AI
-assistants, explains what it found, and offers a redacted version before the
-content is sent.
+SafePrompt is a Chrome extension that checks what you paste into ChatGPT, Claude
+or Gemini for API keys, passwords, private keys and personal data, before it gets
+sent.
 
-Nothing pasted ever leaves the browser. There is no backend.
+If a paste contains something sensitive, SafePrompt holds it and shows you what
+it found and why, along with a redacted version of the text. For example, this
+line:
 
-**Status:** early development.
+```
+DATABASE_URL=postgres://svc_orders:Hq7Kd0Lm2Pn9@db-prod-01.internal:5432/orders
+```
 
-## Packages
+is offered as:
 
-| Package                 | Purpose                                                       |
-| ----------------------- | ------------------------------------------------------------- |
-| `@safeprompt/core`      | Scanner engine. Zero dependencies, no DOM, no network.        |
-| `@safeprompt/eval`      | Fixture corpus and precision/recall harness.                  |
-| `@safeprompt/extension` | Chrome MV3 extension. Intercepts pastes, renders the warning. |
+```
+DATABASE_URL=postgres://[DB_USER_1]:[DB_PASSWORD_1]@[DB_HOST_1]:5432/[DB_NAME_1]
+```
 
-The scanner is deliberately independent of the browser. `core` has no runtime
-dependencies and is compiled without the DOM type library, so a browser API call
-inside it is a compile error rather than a code review comment. The extension
-holds as little logic as possible — it calls `scanText(input)` and renders the
-result.
+You can paste the redacted version, paste the original, or cancel. All of the
+scanning happens in your browser. There is no server, and nothing you paste is
+stored or sent anywhere.
 
-## Detection quality
+**[Try the scanner online](https://rspanu27.github.io/safeprompt/)** without
+installing anything. The page runs the same scanning code as the extension.
 
-Detectors are measured against a labelled corpus of 49 samples — 23 carrying real
-secrets, 26 hard negatives drawn from the places lookalikes actually appear:
-README setup instructions, git logs, UUIDs, lockfile hashes, minified bundles and
-base64 images.
+## What it detects
+
+| Detector                    | Examples                                                        |
+| --------------------------- | --------------------------------------------------------------- |
+| Private keys                | RSA, EC, OpenSSH and PGP key blocks, including truncated ones   |
+| Database connection strings | Postgres, MySQL, MongoDB, Redis and AMQP, redacted part by part |
+| API keys and tokens         | AWS, GitHub, Stripe, Slack and OpenAI                           |
+| JSON Web Tokens             | Checked by decoding the header                                  |
+| Assigned secrets            | `password = …`, `DB_PASSWORD=…`, `"client_secret": …`           |
+| Private IP addresses        | 10/8, 172.16/12, 192.168/16, link-local and carrier-grade NAT   |
+| Internal hostnames          | `.internal`, `.corp`, `.lan` and Kubernetes service addresses   |
+| Email addresses             | Ignoring documentation domains and credentials inside URLs      |
+
+SafePrompt also tries to work out what kind of text it is looking at (a log, a
+stack trace, an env file, source code) and raises the severity of findings when
+the context makes them more sensitive. An email address in a paragraph of text
+is usually just a contact address, but in a production log it probably belongs
+to a real customer.
+
+## Accuracy and speed
+
+Each detector is tested against a labelled set of 49 samples. 23 of them contain
+secrets. The other 26 contain things that look like secrets but aren't, taken
+from the places they usually turn up: README setup instructions, git logs, UUIDs,
+lockfile hashes and minified JavaScript.
 
 |         | Precision | Recall |    F1 |
 | ------- | --------: | -----: | ----: |
 | Overall |    100.0% |  98.3% | 0.991 |
 
-Content is also classified — source code, `.env`, stack trace, JSON, SQL, log or
-prose — because severity depends on surroundings. An address in prose is a
-contact detail; the same address in a production log is a real customer. Context
-only ever raises a finding's severity, never lowers it, and records why.
+The numbers for each detector, and the one sample it currently misses, are in
+[docs/EVALUATION.md](docs/EVALUATION.md). CI recalculates them on every push and
+fails if any of them go down.
 
-Per-detector figures are in [docs/EVALUATION.md](docs/EVALUATION.md), regenerated
-by `pnpm eval`. CI runs the same command against a committed baseline and fails
-the build if precision, recall or classification accuracy regresses, so a
-detector cannot be loosened without the numbers moving in the open.
+A typical 10 KB paste takes about 2 ms to scan, and 1 MB takes about 140 ms. CI
+also times some inputs designed to make regular expressions slow, and fails if a
+scan goes over its time limit.
 
-## Extension
+I wrote the test samples myself, so expect recall on real-world text to be
+lower. The [threat model](docs/THREAT_MODEL.md) lists what SafePrompt does not
+catch.
 
-Manifest V3, built with WXT. Host permissions are enumerated for the four
-supported origins rather than requesting `<all_urls>`, and the only permission is
-`storage`, for settings — scanned content never reaches it.
+## Install
 
-The warning modal mounts inside a **closed** shadow root. Page scripts cannot
-read through it to the redaction preview, and page CSS cannot reach in to
-restyle the buttons, which would be a security problem rather than a cosmetic
-one if `Paste original` could be made to look like `Cancel`.
+1. Download `safeprompt-0.1.0-chrome.zip` from the
+   [latest release](https://github.com/rspanu27/safeprompt/releases/latest) and
+   unzip it.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Click **Load unpacked** and select the unzipped folder.
 
-```bash
-pnpm --filter @safeprompt/extension dev
+To try it, paste something sensitive into ChatGPT, Claude or Gemini. Clicking
+the toolbar icon opens a popup where you can pause it for the current site or
+open the settings.
+
+## How it works
+
+```mermaid
+flowchart LR
+  P[paste] --> S[scan]
+  S -->|nothing found| E[editor]
+  S -->|something found| M[warning]
+  M -->|redacted or original| E
 ```
 
-Then load `packages/extension/.output/chrome-mv3` as an unpacked extension at
-`chrome://extensions`. Paste interception arrives with the site adapters; for
-now `Ctrl+Shift+Y` on a supported site opens the modal against a fixed sample.
+The scanner is its own package. It has no dependencies and no access to browser
+APIs; it is compiled without the DOM type definitions, so using one is a compile
+error. The extension catches the paste, passes the text to the scanner, and
+shows the result in a dialog that the page's own scripts cannot read.
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) goes into more detail: the scanning
+steps, the detectors, how overlapping findings and risk scores are handled, how
+the extension inserts text into the sites' editors, and why things are built the
+way they are.
+
+## Repository layout
+
+```
+packages/
+  core/        the scanner (TypeScript, no dependencies)
+  extension/   the Chrome extension (WXT, React)
+  eval/        test samples, accuracy measurement and benchmark
+  demo/        the online demo page
+docs/          architecture, threat model, privacy, accuracy results
+```
 
 ## Development
 
-Requires Node (see `.nvmrc`) and pnpm via Corepack.
+You need Node (version in `.nvmrc`) and pnpm, which you can get through Corepack.
 
 ```bash
 pnpm install
@@ -76,6 +125,28 @@ pnpm install
 pnpm typecheck && pnpm lint && pnpm test
 ```
 
-TypeScript is pinned to 6.x: `typescript-eslint` does not yet support the TS 7
-compiler API, and dropping type-aware linting would disable the rules that
-enforce the package boundaries described above.
+```bash
+pnpm eval
+```
+
+```bash
+pnpm bench
+```
+
+`pnpm --filter @safeprompt/extension dev` opens Chrome with the extension loaded
+and rebuilds it when you save. `pnpm --filter @safeprompt/demo dev` runs the
+demo page locally.
+
+TypeScript is pinned to 6.x. `typescript-eslint` doesn't support TypeScript 7
+yet, and the lint rules that keep the packages separate need it.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md): how it works and why
+- [Threat model](docs/THREAT_MODEL.md): what it protects against and what it doesn't
+- [Privacy](docs/PRIVACY.md): what it reads, what it stores and where
+- [Evaluation](docs/EVALUATION.md): precision and recall for each detector
+
+## Licence
+
+[MIT](LICENSE)
