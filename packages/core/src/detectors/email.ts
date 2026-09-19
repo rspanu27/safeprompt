@@ -23,8 +23,9 @@ const RESERVED_DOMAINS =
 const AUTHORITY_LOOKBACK = 256;
 
 /**
- * `user:pass@host` inside a URL is credentials, not an address — and the
- * connection-string detector reports it far more precisely.
+ * `user:pass@host` inside a URL is a set of credentials rather than an email
+ * address, and the connection string detector already reports it in more
+ * detail.
  */
 function insideUrlAuthority(text: string, start: number): boolean {
   const before = text.slice(Math.max(0, start - AUTHORITY_LOOKBACK), start);

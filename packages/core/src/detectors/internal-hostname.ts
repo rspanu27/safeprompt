@@ -1,12 +1,13 @@
 import type { Detector, Finding } from '../types';
 
 /**
- * Suffixes reserved for private networks. Leaking these maps out internal
- * infrastructure even when no credential is attached.
+ * Suffixes reserved for private networks. These reveal internal infrastructure
+ * even when no password comes with them.
  *
- * `\b` alone is not enough of an anchor: every `.` is a word boundary, so on
- * `a.a.a.a…` a match was attempted at every label and each attempt walked the
- * rest of the run — quadratic. The lookbehind allows only the start of the run.
+ * `\b` alone doesn't anchor this well enough, because every `.` is a word
+ * boundary. On `a.a.a.a…` a match was tried at every label and each attempt
+ * scanned the rest of the text, which is quadratic. The lookbehind only allows
+ * a match to start at the beginning of the hostname.
  */
 const INTERNAL_SUFFIX =
   /(?<![a-z0-9.-])(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(internal|intranet|corp|lan|localdomain|local)\b/gi;

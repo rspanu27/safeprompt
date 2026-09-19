@@ -13,9 +13,9 @@ import { SAMPLES } from './samples';
 const REPO = 'https://github.com/rspanu27/safeprompt';
 const NAMES = new Map(DETECTORS.map((d) => [d.id, d.name]));
 
-// The first scan pays for the engine compiling every pattern — around 20 ms
-// against a steady 0.3 ms. One throwaway scan at load means the timing the page
-// shows is what scanning costs, not what starting up costs.
+// The first scan also compiles every pattern, so it takes around 20 ms instead
+// of the usual 0.3 ms. Running one scan when the page loads means the time
+// shown to the user is the normal scanning time.
 scanText(SAMPLES.map((s) => s.text).join('\n'));
 
 interface Group {

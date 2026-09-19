@@ -4,8 +4,8 @@ import { groupFindings, type FindingGroup } from './group';
 import { MODAL_CSS } from './styles';
 
 /**
- * Factual rather than urgent. The user is a competent adult who pasted
- * something; the job is to tell them what is in it, not to alarm them.
+ * Written to describe what was found without sounding alarming, as the spec
+ * asks for a professional tone.
  */
 const HEADLINE: Record<Severity, string> = {
   low: 'Some personal details in this paste',
@@ -58,8 +58,8 @@ export function WarningModal({
     // typed goes into it. Enter then takes the safe option.
     primary.current?.focus();
 
-    // On window, in the capture phase, so Escape works wherever focus is and the
-    // page never sees the keystroke — several of these sites bind Escape too.
+    // Listen on window in the capture phase, so Escape works wherever focus is
+    // and the page doesn't also receive it. Some of these sites use Escape too.
     const onKeyDown = (event: globalThis.KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       event.preventDefault();

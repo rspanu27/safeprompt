@@ -4,9 +4,10 @@ import type { StorageArea } from './area';
 /**
  * `chrome.storage.local`, holding both settings and history.
  *
- * Deliberately not `sync`: the allowlist can contain values the user considers
+ * Not `sync`, because the allowlist can contain values the user considers
  * sensitive, and sync would copy them through their Google account to every
- * signed-in device. Nothing SafePrompt keeps leaves the machine.
+ * device they're signed in on. Keeping everything local means none of it
+ * leaves this computer.
  */
 export const localArea: StorageArea = {
   async get(key) {

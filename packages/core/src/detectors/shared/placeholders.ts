@@ -1,9 +1,9 @@
 /**
  * Recognise dummy values.
  *
- * Documentation, READMEs and config templates are full of things shaped exactly
- * like credentials, and they are the single largest source of false positives.
- * Every detector that matches a free-form value should run it past this first.
+ * Documentation, READMEs and config templates contain a lot of values that look
+ * like credentials, and they cause more false positives than anything else.
+ * Detectors that match free-form values should check them here first.
  */
 
 const EXACT = new Set([
@@ -57,7 +57,7 @@ const KNOWN_DOC_VALUES = new Set([
 /** `<token>`, `{{token}}`, `${TOKEN}`, `%TOKEN%`, `[token]`. */
 const TEMPLATE = /^(?:<.*>|\{\{.*\}\}|\$\{.*\}|%.*%|\[.*\])$/;
 
-/** `process.env.X`, `os.getenv("X")`, `ENV["X"]` — a reference, not a value. */
+/** `process.env.X`, `os.getenv("X")`, `ENV["X"]`: references to a secret, not the secret itself. */
 const ENV_REFERENCE = /(?:process\s*\.\s*env|getenv|ENV\s*\[|Deno\s*\.\s*env)/i;
 
 export function isPlaceholder(value: string): boolean {

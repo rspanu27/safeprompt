@@ -3,9 +3,9 @@ import type { ContentContext } from '@safeprompt/core';
 /**
  * What each sample actually is, judged by hand.
  *
- * Kept as one table rather than a field on each sample so it can be read in one
- * go and audited for honesty — the temptation when labelling your own corpus is
- * to write down whatever the classifier already says.
+ * Kept as one table instead of a field on each sample, so all the labels can be
+ * checked at once. When you label your own test data it's easy to just write
+ * down whatever the classifier already outputs.
  *
  * `pnpm eval` fails if any sample is missing from this map.
  */

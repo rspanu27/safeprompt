@@ -19,12 +19,12 @@ const entrySchema = z.object({
 });
 
 /**
- * What happened, never what was pasted.
+ * A record of what happened, without any of the pasted text.
  *
- * No values, no snippets, no URL. The site is recorded as the adapter id rather
- * than the page address, because conversation URLs carry identifiers of their
- * own. History that stored content would be a new place for the secrets this
- * extension exists to protect.
+ * It stores no values, snippets or URLs. The site is saved as the adapter id
+ * instead of the page address, because conversation URLs contain their own
+ * identifiers. If the history stored pasted text, it would become another place
+ * where the user's secrets are kept.
  */
 export type HistoryEntry = z.infer<typeof entrySchema>;
 

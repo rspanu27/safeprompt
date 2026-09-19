@@ -81,7 +81,7 @@ describe('scanText on a realistic paste', () => {
 });
 
 describe('scanText on content that only looks sensitive', () => {
-  /** A README section — the classic false-positive source. */
+  /** A README setup section, the most common source of false positives. */
   const DOCS = [
     '## Configuration',
     '',

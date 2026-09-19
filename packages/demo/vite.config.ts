@@ -3,8 +3,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
-  // Relative, so the build works at any path — including the /safeprompt/
-  // subdirectory GitHub Pages serves a project site from.
+  // A relative base so the build works from any path, including the
+  // /safeprompt/ subdirectory that GitHub Pages serves this project from.
   base: './',
   test: {
     environment: 'happy-dom',

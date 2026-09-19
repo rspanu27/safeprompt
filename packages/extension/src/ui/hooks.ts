@@ -5,11 +5,11 @@ import { loadSettings, saveSettings, watchSettings } from '../settings/store';
 import type { StorageArea } from '../storage/area';
 
 /**
- * Settings kept in step with storage.
+ * Settings that stay in sync with storage.
  *
- * Changes from other pages — the popup while the options page is open, say —
- * arrive through the storage listener, so both stay consistent without talking
- * to each other.
+ * Changes made on another page, such as the popup while the options page is
+ * open, arrive through the storage listener, so the pages stay consistent
+ * without having to talk to each other.
  */
 export function useSettings(area: StorageArea): {
   settings: Settings | null;

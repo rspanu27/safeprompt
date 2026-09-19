@@ -2,8 +2,8 @@ import type { Detector, Finding } from '../types';
 import { decodeBase64Url } from './shared/encoding';
 
 /**
- * Anchored on `eyJ`, which is base64url for `{"` — every JWT header starts
- * with it. Cheap way to skip the many other dot-separated tokens in a paste.
+ * Every JWT header starts with `eyJ`, which is `{"` in base64url. Requiring it
+ * is a cheap way to skip the many other dot-separated strings in a paste.
  */
 const CANDIDATE = /\beyJ[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]*/g;
 

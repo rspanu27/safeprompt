@@ -26,9 +26,10 @@ export interface SettingsCache {
 /**
  * Settings the content script can read synchronously.
  *
- * A paste has to be cancelled during the event, so there is no time to await
- * storage. The cache starts from the defaults — protection on — and is replaced
- * as soon as storage answers. If storage never answers, the defaults stand.
+ * A paste has to be cancelled during the event, so there is no time to wait
+ * for storage. The cache starts with the default settings, which have
+ * protection turned on, and switches to the stored settings once they load. If
+ * storage never responds, the defaults stay in use.
  */
 export function createSettingsCache(area: StorageArea): SettingsCache {
   let settings: Settings = DEFAULT_SETTINGS;

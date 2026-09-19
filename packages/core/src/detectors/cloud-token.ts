@@ -10,9 +10,9 @@ interface Rule {
 }
 
 /**
- * Provider tokens carry a fixed prefix and length, which makes them far more
- * precise than a generic high-entropy guess — the prefix alone tells you who
- * issued it and what it opens.
+ * Provider tokens have a fixed prefix and length, so they can be matched much
+ * more precisely than a generic "looks random" check. The prefix also says
+ * which service the token belongs to.
  */
 const RULES: readonly Rule[] = [
   {

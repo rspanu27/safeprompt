@@ -17,8 +17,8 @@ const unique = (values: readonly string[]): string[] => [...new Set(values)];
 /**
  * One row per detector, most serious first.
  *
- * A single connection string produces four findings — user, password, host,
- * database — and listing them separately makes one leak look like four.
+ * A single connection string produces four findings (user, password, host and
+ * database), and listing them separately would make one leak look like four.
  */
 export function groupFindings(findings: readonly Finding[]): FindingGroup[] {
   const byDetector = new Map<string, Finding[]>();

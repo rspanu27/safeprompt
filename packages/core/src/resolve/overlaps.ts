@@ -31,16 +31,18 @@ function lowerBound(accepted: readonly Accepted[], start: number): number {
 }
 
 /**
- * Reduce findings to a non-overlapping set.
+ * Reduce findings to a set that doesn't overlap.
  *
- * One `postgres://user:pw@host/db` matches the database-URL, password and
- * hostname detectors at once. Redacting all three corrupts the output; showing
- * all three turns one leak into several. The winner keeps a note of what it
- * absorbed so the UI can still mention the password.
+ * A single `postgres://user:pw@host/db` is matched by the database URL,
+ * password and hostname detectors at the same time. Redacting all three would
+ * mangle the output, and listing all three would make one leak look like
+ * three. The finding that wins records which other detectors matched, so the
+ * UI can still mention the password.
  *
- * Accepted spans are kept sorted and disjoint, so a clash can only be with the
- * neighbours of a candidate's position — found by binary search rather than by
- * comparing against every winner so far, which was quadratic in large pastes.
+ * Accepted spans are kept sorted and never overlap, so a candidate can only
+ * clash with its neighbours, which are found with a binary search. The first
+ * version compared each candidate with every accepted finding, which was
+ * quadratic on large pastes.
  */
 export function resolveOverlaps(findings: readonly Finding[]): readonly Finding[] {
   const candidates = [...findings].sort(byPriority);

@@ -15,8 +15,8 @@ export interface Span {
 }
 
 /**
- * Names a placeholder family, not a final token — the redactor allocates the
- * number so equal values share a token within one scan.
+ * The placeholder type, such as `EMAIL`. The redactor adds the number, so
+ * equal values get the same token within one scan.
  */
 export interface RedactionPlan {
   readonly placeholder: string;

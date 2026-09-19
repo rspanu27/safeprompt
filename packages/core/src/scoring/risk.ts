@@ -1,7 +1,7 @@
 import { SEVERITY_RANK } from '../severity';
 import type { Finding, RiskAssessment, RiskContribution, Severity } from '../types';
 
-/** Gaps are wide so one critical finding outranks any realistic pile of low ones. */
+/** Far apart, so one critical finding outweighs any realistic number of low ones. */
 const POINTS: Record<Severity, number> = {
   low: 4,
   medium: 12,
@@ -9,7 +9,11 @@ const POINTS: Record<Severity, number> = {
   critical: 60,
 };
 
-/** Twenty addresses is a mailing list, not twenty leaks. Without decay, repetition saturates the score. */
+/**
+ * Each repeat from the same detector counts for less, so a list of twenty email
+ * addresses doesn't score like twenty separate problems. Without this, any long
+ * list would push the score to the maximum.
+ */
 const REPEAT_DECAY = 0.6;
 
 /** Lower bound of each band, highest first. */
@@ -37,9 +41,9 @@ function bandFor(score: number): Severity {
 }
 
 function summarise(detectorId: string, group: readonly Finding[]): RiskContribution | null {
-  // A single detector can report components of differing severity — a
-  // connection string yields a critical password beside a medium hostname — so
-  // decay is applied per severity rather than across the whole group.
+  // One detector can report parts with different severities. A connection
+  // string has a critical password and a medium hostname, for example, so the
+  // repeat decay is applied separately for each severity.
   const counts = new Map<Severity, number>();
   let worst: Finding | undefined;
 

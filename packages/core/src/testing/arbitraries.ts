@@ -2,9 +2,9 @@ import fc from 'fast-check';
 import type { Finding, Severity } from '../types';
 
 /**
- * Small on purpose — repeated substrings stress token allocation, and a wide
- * alphabet makes them vanishingly rare. No brackets, or generated text could
- * look like a token rehydration inserted.
+ * A small alphabet on purpose. Repeated substrings are what test placeholder
+ * numbering, and with a large alphabet they almost never happen. There are no
+ * brackets, so generated text can't look like a placeholder token.
  */
 const CHARS = [...'ab01 .@-'];
 

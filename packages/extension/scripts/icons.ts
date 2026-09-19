@@ -1,8 +1,8 @@
 /**
  * Rasterise assets/icon.svg into the PNG sizes Chrome asks for.
  *
- * The PNGs are committed, so a build never depends on this script — run it
- * only after changing the SVG.
+ * The PNGs are committed, so the build doesn't need this script. Run it after
+ * changing the SVG.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

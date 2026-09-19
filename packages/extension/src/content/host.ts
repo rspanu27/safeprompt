@@ -7,13 +7,12 @@ export interface ModalHost {
 }
 
 /**
- * Create an isolated mount point for our UI inside a hostile page.
+ * Create a place to mount the dialog that the page can't interfere with.
  *
- * The shadow root is **closed**, so `element.shadowRoot` returns null to page
- * scripts: they cannot read the pre-redaction preview or retarget the buttons.
- * It also stops the page's CSS reaching in — a stylesheet that happened to
- * restyle our "Paste original" button to look like "Cancel" would be a security
- * problem, not a cosmetic one.
+ * The shadow root is closed, so `element.shadowRoot` returns null to page
+ * scripts and they can't read the preview or change the buttons. The page's
+ * CSS doesn't apply inside it either. If a stylesheet could make the "Paste
+ * original" button look like "Cancel", that would be a security problem.
  */
 export function createModalHost(doc: Document = document): ModalHost {
   doc.getElementById(HOST_ID)?.remove();

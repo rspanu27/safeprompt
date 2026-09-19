@@ -14,15 +14,12 @@ interface Rule {
 }
 
 /**
- * Severity is not a property of a value on its own.
+ * How serious a value is depends on where it appears. An email address in
+ * ordinary text is usually a contact address, but in a production log it is
+ * probably a real customer, and hostnames in a log are real servers.
  *
- * An address in prose is someone's contact detail. The same address in a
- * production log is a real customer, alongside evidence of what they did — and
- * the infrastructure it names is live rather than illustrative.
- *
- * Adjustments only ever raise. Lowering a finding because of a guess about its
- * surroundings trades a false positive for a missed leak, which is the wrong
- * way round for this tool.
+ * These rules only raise severity. Lowering it based on a guess about the
+ * surroundings could hide a real leak, which is worse than an extra warning.
  */
 const RULES: readonly Rule[] = [
   {

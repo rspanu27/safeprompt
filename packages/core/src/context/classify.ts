@@ -4,8 +4,9 @@ const TIMESTAMPED_LINE =
   /^(?:\[)?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}|^(?:\[)?(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL)\b/i;
 
 /**
- * A call on the right-hand side makes it code, and a space in the value means
- * the line holds more than one assignment — `a=1 b=2` is a log, not a config.
+ * A function call on the right-hand side means it's code. A space in the value
+ * means there is more than one assignment on the line, like `a=1 b=2`, which is
+ * more likely a log line than config.
  */
 const ASSIGNMENT_LINE = /^(?:export\s+)?[A-Za-z_][A-Za-z0-9_]*\s*=(?![=>])[ \t]*[^\s(]*$/;
 
@@ -20,9 +21,10 @@ const STACK_FRAME = /^\s*(?:at\s+\S+|File\s+".*",\s+line\s+\d+|\w+\.\w+\([^)]*\.
 const STACK_HEADER = /^(?:Traceback \(most recent call last\):|Exception in thread|Caused by:)/m;
 
 /**
- * Deliberately narrow. Keywords that double as ordinary English — `from`, `if`,
- * `for`, `class`, `private`, `return` — classified prose as source code, so the
- * signals here are either rare in writing or structural.
+ * Kept short on purpose. Keywords that are also common English words (`from`,
+ * `if`, `for`, `class`, `private`, `return`) made ordinary sentences look like
+ * code, so this only uses keywords that are rare in normal writing, plus
+ * punctuation patterns.
  */
 const CODE_TOKEN =
   /(?:^|[\s!(])(?:function|const|var|def|import|export)\b|=>|=\s*[A-Za-z_][\w.]*\(|\)\s*\{$|;\s*$|[{[]\s*$|^\s*[}\])]+[;,]?\s*$/;
@@ -40,7 +42,7 @@ function fraction(lines: readonly string[], test: (line: string) => boolean): nu
   return lines.filter(test).length / lines.length;
 }
 
-/** Parsing is the only way to be sure, and it costs nothing on a failed parse. */
+/** Tries to parse it. A failed parse returns quickly, so this is cheap. */
 function isJson(text: string): boolean {
   const trimmed = text.trim();
   if (!/^[[{]/.test(trimmed)) return false;

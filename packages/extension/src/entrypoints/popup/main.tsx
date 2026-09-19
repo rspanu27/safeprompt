@@ -9,9 +9,9 @@ import '../../ui/pages.css';
 /**
  * Which supported site the active tab is on.
  *
- * `tab.url` is only visible for origins in host_permissions, so this needs no
- * `tabs` permission — and for any other site it is simply undefined, which is
- * the right answer anyway.
+ * `tab.url` is only visible for origins in host_permissions, so this doesn't
+ * need the `tabs` permission. On any other site it is undefined, which is fine
+ * because SafePrompt doesn't run there anyway.
  */
 async function activeSite(): Promise<SiteId | null> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });

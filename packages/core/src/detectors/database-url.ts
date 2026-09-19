@@ -33,9 +33,9 @@ interface Component {
 /**
  * Split a connection string into its parts.
  *
- * Hand-parsed rather than handed to `URL`, which lives in the DOM lib this
- * package is compiled without — and parsing it here means the offsets come out
- * directly, which is what redaction needs.
+ * Parsed by hand because `URL` is only in the DOM type definitions, which this
+ * package is compiled without. Parsing it here also gives the character offsets
+ * of each part directly, which redaction needs.
  */
 function parse(url: string, offset: number): { components: Component[]; host: string } | null {
   const schemeEnd = url.indexOf('://');

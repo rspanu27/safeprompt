@@ -30,8 +30,8 @@ const defaultPolicy = (site: string): PastePolicy => policyFor(DEFAULT_SETTINGS,
  * Decide whether to hold a paste.
  *
  * Returns the decision if the paste was cancelled, or null if it was allowed
- * through. Everything that could throw is wrapped so that the answer on failure
- * is always "let it through": a broken adapter must cost the user nothing.
+ * through. Everything that could throw is wrapped, so if something fails the
+ * paste is let through and the user doesn't lose it.
  */
 export function handlePaste(
   event: ClipboardEvent,

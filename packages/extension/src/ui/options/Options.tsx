@@ -32,8 +32,8 @@ export function Options({ settingsArea, historyArea }: OptionsProps) {
   const history = useHistory(historyArea);
   const [allowDraft, setAllowDraft] = useState<string | null>(null);
 
-  // Seed the editor once settings arrive, then leave it to the user until they
-  // finish editing — resetting it on every storage echo would eat keystrokes.
+  // Fill the text box once settings load, then leave it alone while the user
+  // edits. Resetting it every time storage changes would lose their typing.
   useEffect(() => {
     if (settings !== null && allowDraft === null) setAllowDraft(settings.allowlist.join('\n'));
   }, [settings, allowDraft]);

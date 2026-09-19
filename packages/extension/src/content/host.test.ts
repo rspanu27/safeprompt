@@ -15,7 +15,7 @@ describe('createModalHost', () => {
     createModalHost();
 
     // A page script that finds our element must not be able to read what is
-    // inside it — the redacted preview contains the user's secrets.
+    // inside it, because the preview shows the user's secrets.
     const host = document.getElementById('safeprompt-host');
     expect(host?.shadowRoot).toBeNull();
   });

@@ -1,7 +1,7 @@
 /**
- * A pattern needs at least this many literal characters. `*` on its own, or
- * `a*`, would quietly switch the scanner off for everything — an easy mistake
- * to make in a settings box and an invisible one afterwards.
+ * A pattern needs at least this many characters besides `*`. A pattern like
+ * `*` or `a*` would match almost everything and effectively turn the scanner
+ * off, which is easy to do by accident and hard to notice afterwards.
  */
 const MIN_LITERAL_CHARACTERS = 4;
 
