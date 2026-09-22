@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New icon: a message with a line blacked out, behind a shield.
+
 ## 0.2.0 (2026-09-22)
 
 - Redesigned the warning dialog around a preview of the text as it would be

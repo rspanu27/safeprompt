@@ -74,10 +74,6 @@ export const MODAL_CSS = `
     color: var(--graphite);
   }
 
-  .mark-tile { fill: var(--ink); }
-  .mark-line { fill: var(--sheet); opacity: 0.7; }
-  .mark-bar { fill: #ffe36e; }
-
   h1 {
     margin: 12px 0 8px;
     font-size: 21px;
