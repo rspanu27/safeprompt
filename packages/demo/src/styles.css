@@ -1,28 +1,41 @@
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --line: #e2e8f0;
-  --mark: #fef3c7;
-  --mark-text: #92400e;
-  --low: #64748b;
-  --medium: #ca8a04;
-  --high: #ea580c;
-  --critical: #dc2626;
-  --clean: #16a34a;
+  --page: #f4f6f8;
+  --sheet: #ffffff;
+  --ink: #18212b;
+  --graphite: #5c6773;
+  --rule: #d5dbe2;
+  --bar: #000000;
+  --bar-text: #f4f6f8;
+  --marker: #ffe36e;
+  --marker-dim: #fff4c2;
+  --focus: #1d5fd6;
+  --good: #1f7a4d;
+  --low: #5c6773;
+  --medium: #a86a00;
+  --high: #c2410c;
+  --critical: #b42318;
+  --sans: 'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #020617;
-    --surface: #0f172a;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --line: #1e293b;
-    --mark: #451a03;
-    --mark-text: #fcd34d;
+    --page: #151b22;
+    --sheet: #1c232c;
+    --ink: #e6eaef;
+    --graphite: #9aa4af;
+    --rule: #2e3844;
+    --bar: #e6eaef;
+    --bar-text: #151b22;
+    --marker: rgb(255 210 70 / 40%);
+    --marker-dim: rgb(255 210 70 / 14%);
+    --focus: #7fb0ff;
+    --good: #5cc28e;
+    --low: #9aa4af;
+    --medium: #e0a53a;
+    --high: #f08a4b;
+    --critical: #f0645a;
     color-scheme: dark;
   }
 }
@@ -33,34 +46,80 @@
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font:
-    15px/1.55 ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.55 var(--sans);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .page {
-  max-width: 1120px;
+  max-width: 1160px;
   margin: 0 auto;
-  padding: 40px 16px 48px;
+  padding: 24px 24px 40px;
 }
 
-header h1 {
+/* Header */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.wordmark {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 8px;
-  font-size: 26px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-header p {
-  max-width: 680px;
-  margin: 0;
-  color: var(--muted);
+.masthead nav {
+  display: flex;
+  gap: 20px;
+  font-size: 15px;
+}
+
+.masthead nav a {
+  color: var(--graphite);
+}
+
+.masthead nav a:hover {
+  color: var(--ink);
+}
+
+.intro {
+  max-width: 44rem;
+  margin: 44px 0 28px;
+}
+
+.intro h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.intro p {
+  font-size: 17px;
+  color: var(--graphite);
 }
 
 .samples {
@@ -68,180 +127,377 @@ header p {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 24px 0 16px;
-  color: var(--muted);
-  font-size: 14px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: var(--graphite);
 }
 
-.samples button {
+.samples span {
+  margin-right: 4px;
+}
+
+button {
   font: inherit;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 5px 12px;
+  color: inherit;
   cursor: pointer;
 }
 
-.samples button[aria-pressed='true'] {
-  border-color: var(--text);
-}
-
-.panes {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 800px) {
-  .panes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.panes section {
-  min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-h2 {
-  margin: 0 0 10px;
-  font-size: 12px;
+.samples button {
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-section h2:not(:first-child) {
-  margin-top: 20px;
-}
-
-textarea {
-  width: 100%;
-  min-height: 420px;
-  resize: vertical;
-  padding: 12px;
-  font:
-    13px/1.55 ui-monospace,
-    'SF Mono',
-    Menlo,
-    Consolas,
-    monospace;
-  color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
   border-radius: 8px;
+  padding: 6px 12px;
 }
 
-pre {
-  margin: 0;
-  padding: 12px;
-  max-height: 320px;
-  overflow: auto;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font:
-    13px/1.55 ui-monospace,
-    'SF Mono',
-    Menlo,
-    Consolas,
-    monospace;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+.samples button:hover {
+  border-color: var(--graphite);
 }
 
-mark {
-  background: var(--mark);
-  color: var(--mark-text);
-  border-radius: 3px;
-  padding: 0 2px;
+.samples button[aria-pressed='true'] {
+  color: var(--sheet);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
-.verdict {
+/* The sheet and its margin */
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 28px;
+  align-items: start;
+}
+
+.sheet {
+  min-width: 0;
+  background: var(--sheet);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--rule);
+  overflow: hidden;
+}
+
+.toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: 0;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 12px 10px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--page);
+  border-radius: 9px;
+}
+
+.toggle button {
+  padding: 5px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--graphite);
+  background: none;
+  border: none;
+  border-radius: 6px;
+}
+
+.toggle button[aria-pressed='true'] {
+  color: var(--ink);
+  background: var(--sheet);
+  box-shadow: 0 0 0 1px var(--rule);
 }
 
 .timing {
-  margin: 4px 0 12px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--graphite);
+  font-variant-numeric: tabular-nums;
 }
 
-.findings {
+/*
+ * The editor is a transparent textarea over a layer that draws the highlights.
+ * Both must lay text out identically, so every property that affects wrapping
+ * is set on both.
+ */
+.editor {
+  position: relative;
+}
+
+.editor textarea,
+.highlights,
+.sheet pre {
+  margin: 0;
+  padding: 20px 22px;
+  font: 14px/1.75 var(--mono);
+  letter-spacing: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  scrollbar-gutter: stable;
+}
+
+.editor textarea {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 440px;
+  min-height: 200px;
+  resize: vertical;
+  color: var(--ink);
+  caret-color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  overflow: auto;
+}
+
+.editor:has(textarea:focus-visible) {
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+
+.editor textarea::placeholder {
+  color: var(--graphite);
+}
+
+.highlights {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: transparent;
+  pointer-events: none;
+}
+
+.highlights mark {
+  color: transparent;
+  border-radius: 2px;
+  background: linear-gradient(var(--marker), var(--marker)) no-repeat left / 100% 100%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation: sweep 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.sheet[data-hot] .highlights mark {
+  background-image: linear-gradient(var(--marker-dim), var(--marker-dim));
+}
+
+.sheet[data-hot] .highlights mark.hot {
+  background-image: linear-gradient(var(--marker), var(--marker));
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.sheet pre {
+  min-height: 440px;
+  max-height: 640px;
+  overflow: auto;
+}
+
+/* The one loud element on the page: the value, knocked out. */
+.bar {
+  margin: 0 1px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 12.5px;
+  color: var(--bar-text);
+  background: linear-gradient(var(--bar), var(--bar)) no-repeat left / 100% 100%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation: knockout 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.sheet[data-hot] .bar:not(.hot) {
+  opacity: 0.35;
+}
+
+@keyframes sweep {
+  from {
+    background-size: 0% 100%;
+  }
+}
+
+@keyframes knockout {
+  from {
+    background-size: 0% 100%;
+    color: var(--ink);
+  }
+  60% {
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlights mark,
+  .bar {
+    animation: none;
+  }
+}
+
+/* Margin notes */
+
+.margin {
+  display: grid;
+  gap: 20px;
+  padding-top: 6px;
+}
+
+.verdict {
+  display: grid;
+  gap: 6px;
+  color: var(--graphite);
+}
+
+.level {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  color: var(--ink);
+}
+
+.level strong {
+  font-weight: 700;
+}
+
+.meter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.meter i {
+  width: 16px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--rule);
+}
+
+.meter[data-level='low'] .on {
+  background: var(--low);
+}
+.meter[data-level='medium'] .on {
+  background: var(--medium);
+}
+.meter[data-level='high'] .on {
+  background: var(--high);
+}
+.meter[data-level='critical'] .on {
+  background: var(--critical);
+}
+
+.clear {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--good);
+}
+
+.notes {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 6px;
+  border-top: 1px solid var(--rule);
 }
 
-.findings li {
+.notes li {
+  padding: 12px 0 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  margin-left: -14px;
+  outline-offset: -2px;
+  cursor: default;
+}
+
+.notes li.hot {
+  border-left-color: var(--ink);
+}
+
+.note-title {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   align-items: baseline;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  gap: 12px;
+  font-weight: 700;
 }
 
-.findings p {
-  margin: 2px 0 0;
+.severity {
   font-size: 13px;
-  color: var(--muted);
+  font-weight: 600;
 }
 
-.count {
-  margin-left: 6px;
-  font-size: 13px;
-  color: var(--muted);
+.severity.low {
+  color: var(--low);
+}
+.severity.medium {
+  color: var(--medium);
+}
+.severity.high {
+  color: var(--high);
+}
+.severity.critical {
+  color: var(--critical);
 }
 
-.dot {
-  display: inline-block;
-  flex-shrink: 0;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.note-parts {
+  margin-top: 2px;
+  font-size: 14px;
 }
 
-.dot.low {
-  background: var(--low);
-}
-.dot.medium {
-  background: var(--medium);
-}
-.dot.high {
-  background: var(--high);
-}
-.dot.critical {
-  background: var(--critical);
-}
-.dot.clean {
-  background: var(--clean);
+.note-why {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--graphite);
 }
 
 footer {
-  margin-top: 24px;
+  margin-top: 40px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--graphite);
 }
 
-footer a {
-  color: inherit;
+@media (max-width: 860px) {
+  .page {
+    padding: 16px 16px 32px;
+  }
+
+  .intro {
+    margin: 28px 0 20px;
+  }
+
+  .desk {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .editor textarea {
+    height: 260px;
+  }
+
+  .sheet pre {
+    min-height: 260px;
+    max-height: 420px;
+  }
+
+  .editor textarea,
+  .highlights,
+  .sheet pre {
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  .notes li {
+    margin-left: 0;
+    padding-left: 11px;
+  }
 }
 
-/* Last, so it overrides the base textarea rule. Stacked on a phone, a tall
-   input pushes every result below the fold. */
-@media (max-width: 800px) {
-  textarea {
-    min-height: 180px;
+@media (max-width: 480px) {
+  .masthead nav {
+    gap: 14px;
+    font-size: 14px;
+  }
+
+  .timing {
+    width: 100%;
   }
 }

@@ -1,37 +1,37 @@
+import { scanText } from '@safeprompt/core';
 import { describe, expect, it } from 'vitest';
-import { segment } from './highlight';
+import { familyOf, markSpans } from './highlight';
 
-describe('segment', () => {
-  it('marks the placeholders the scan inserted', () => {
-    expect(segment('key=[SECRET_1] host=[HOST_1]', ['[SECRET_1]', '[HOST_1]'])).toEqual([
-      { text: 'key=', token: false },
-      { text: '[SECRET_1]', token: true },
-      { text: ' host=', token: false },
-      { text: '[HOST_1]', token: true },
-    ]);
+describe('familyOf', () => {
+  it('drops the brackets and the number', () => {
+    expect(familyOf('[DB_PASSWORD_12]')).toBe('DB_PASSWORD');
   });
+});
 
-  it('leaves bracketed text alone when the scan did not insert it', () => {
-    expect(segment('see [NOTE_1] above', [])).toEqual([
-      { text: 'see [NOTE_1] above', token: false },
+describe('markSpans', () => {
+  it('marks each finding with the detector that found it', () => {
+    const text = 'ping dana@acme.io now';
+    const parts = markSpans(text, scanText(text).findings);
+
+    expect(parts).toEqual([
+      { text: 'ping ', detectorId: null },
+      { text: 'dana@acme.io', detectorId: 'email' },
+      { text: ' now', detectorId: null },
     ]);
-  });
-
-  it('does not match a shorter token inside a longer one', () => {
-    const parts = segment('[EMAIL_10] and [EMAIL_1]', ['[EMAIL_1]', '[EMAIL_10]']);
-    expect(parts.filter((p) => p.token).map((p) => p.text)).toEqual(['[EMAIL_10]', '[EMAIL_1]']);
   });
 
   it('reassembles to the original text', () => {
-    const text = '[A_1]middle[B_1]';
-    expect(
-      segment(text, ['[A_1]', '[B_1]'])
-        .map((p) => p.text)
-        .join(''),
-    ).toBe(text);
+    const text = 'DATABASE_URL=postgres://svc:Hq7Kd0Lm2Pn9@db.internal:5432/orders';
+    const parts = markSpans(text, scanText(text).findings);
+
+    expect(parts.map((p) => p.text).join('')).toBe(text);
+  });
+
+  it('returns the whole text unmarked when nothing was found', () => {
+    expect(markSpans('hello', [])).toEqual([{ text: 'hello', detectorId: null }]);
   });
 
   it('returns nothing for empty text', () => {
-    expect(segment('', [])).toEqual([]);
+    expect(markSpans('', [])).toEqual([]);
   });
 });

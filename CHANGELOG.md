@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Redesigned the warning dialog around a preview of the text as it would be
+  sent, with each replaced value shown as a black bar.
+- Restyled the popup and settings page, with drawn switches and a risk meter in
+  the history table. Both use bundled Atkinson Hyperlegible fonts, so no font is
+  fetched from the web.
+- Rebuilt the demo page: the text is highlighted where the scanner found
+  something, a toggle shows it as it would be sent, and hovering a finding
+  picks out its matches.
+
 ## 0.1.0 (2026-09-19)
 
 First release.
