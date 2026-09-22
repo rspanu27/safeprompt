@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-09-22)
 
 - Redesigned the warning dialog around a preview of the text as it would be
   sent, with each replaced value shown as a black bar.
@@ -10,6 +10,8 @@
 - Rebuilt the demo page: the text is highlighted where the scanner found
   something, a toggle shows it as it would be sent, and hovering a finding
   picks out its matches.
+- Added `splitRedacted` to the core API, which splits redacted text into plain
+  runs and placeholders for display.
 
 ## 0.1.0 (2026-09-19)
 
