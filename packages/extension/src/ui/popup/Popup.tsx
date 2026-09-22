@@ -3,6 +3,7 @@ import type { SiteId } from '../../settings/schema';
 import type { StorageArea } from '../../storage/area';
 import { useHistory, useSettings } from '../hooks';
 import { SITE_NAMES } from '../labels';
+import { Mark } from '../Mark';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -15,6 +16,8 @@ export interface PopupProps {
   readonly now?: number;
 }
 
+const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
+
 export function Popup({ settingsArea, historyArea, site, onOpenSettings, now }: PopupProps) {
   const { settings, update } = useSettings(settingsArea);
   const history = useHistory(historyArea);
@@ -23,12 +26,20 @@ export function Popup({ settingsArea, historyArea, site, onOpenSettings, now }: 
 
   const week = summarise(history ?? [], (now ?? Date.now()) - WEEK);
   const siteOn = site !== null && settings.sites[site];
+  const outcomes = [
+    week.sentRedacted > 0 && `${week.sentRedacted} sent redacted`,
+    week.sentOriginal > 0 && `${week.sentOriginal} sent original`,
+    week.cancelled > 0 && `${week.cancelled} cancelled`,
+  ].filter((part) => part !== false);
 
   return (
     <main className="popup">
       <header>
-        <h1>SafePrompt</h1>
-        <p className="muted">
+        <h1>
+          <Mark size={22} />
+          SafePrompt
+        </h1>
+        <p className={settings.enabled && siteOn ? 'status on' : 'status'}>
           {!settings.enabled
             ? 'Protection is off everywhere.'
             : site === null
@@ -39,41 +50,50 @@ export function Popup({ settingsArea, historyArea, site, onOpenSettings, now }: 
         </p>
       </header>
 
-      <label className="row">
-        <span>Protection</span>
-        <input
-          type="checkbox"
-          role="switch"
-          checked={settings.enabled}
-          onChange={(e) => {
-            update({ enabled: e.target.checked });
-          }}
-        />
-      </label>
-
-      {site !== null && (
+      <div className="group">
         <label className="row">
-          <span>On {SITE_NAMES[site]}</span>
+          <span>Protection</span>
           <input
             type="checkbox"
             role="switch"
-            checked={settings.sites[site]}
-            disabled={!settings.enabled}
+            checked={settings.enabled}
             onChange={(e) => {
-              update({ sites: { ...settings.sites, [site]: e.target.checked } });
+              update({ enabled: e.target.checked });
             }}
           />
         </label>
-      )}
+
+        {site !== null && (
+          <label className="row">
+            <span>On {SITE_NAMES[site]}</span>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={settings.sites[site]}
+              disabled={!settings.enabled}
+              onChange={(e) => {
+                update({ sites: { ...settings.sites, [site]: e.target.checked } });
+              }}
+            />
+          </label>
+        )}
+      </div>
 
       <section className="stats" aria-label="This week">
         {week.held === 0 ? (
           <p className="muted">Nothing held this week.</p>
         ) : (
-          <p>
-            <strong>{week.held}</strong> {week.held === 1 ? 'paste' : 'pastes'} held this week ·{' '}
-            {week.sentRedacted} sent redacted · {week.cancelled} cancelled
-          </p>
+          <>
+            <p>
+              <strong>{plural(week.held, 'paste', 'pastes')} held this week</strong>
+            </p>
+            <p className="muted">{outcomes.join(', ')}.</p>
+            <div className="split" aria-hidden="true">
+              <i className="redacted" style={{ flexGrow: week.sentRedacted }} />
+              <i className="original" style={{ flexGrow: week.sentOriginal }} />
+              <i className="cancelled" style={{ flexGrow: week.cancelled }} />
+            </div>
+          </>
         )}
       </section>
 

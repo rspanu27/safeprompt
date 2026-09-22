@@ -1,25 +1,36 @@
 :root {
-  --text: #0f172a;
-  --muted: #64748b;
-  --line: #e2e8f0;
-  --surface: #ffffff;
-  --subtle: #f8fafc;
-  --accent: #0f172a;
-  --low: #64748b;
-  --medium: #ca8a04;
-  --high: #ea580c;
-  --critical: #dc2626;
+  --page: #f4f6f8;
+  --sheet: #ffffff;
+  --ink: #18212b;
+  --graphite: #5c6773;
+  --rule: #d5dbe2;
+  --bar: #000000;
+  --marker: #ffe36e;
+  --focus: #1d5fd6;
+  --good: #1f7a4d;
+  --low: #5c6773;
+  --medium: #a86a00;
+  --high: #c2410c;
+  --critical: #b42318;
+  --sans: 'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --line: #334155;
-    --surface: #0f172a;
-    --subtle: #1e293b;
-    --accent: #e2e8f0;
+    --page: #151b22;
+    --sheet: #1c232c;
+    --ink: #e6eaef;
+    --graphite: #9aa4af;
+    --rule: #2e3844;
+    --bar: #e6eaef;
+    --focus: #7fb0ff;
+    --good: #5cc28e;
+    --low: #9aa4af;
+    --medium: #e0a53a;
+    --high: #f08a4b;
+    --critical: #f0645a;
     color-scheme: dark;
   }
 }
@@ -30,43 +41,59 @@
 
 body {
   margin: 0;
-  background: var(--surface);
-  color: var(--text);
-  font:
-    14px/1.5 ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  background: var(--sheet);
+  color: var(--ink);
+  font: 14px/1.5 var(--sans);
+}
+
+p {
+  margin: 0;
 }
 
 h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--graphite);
 }
 
 small {
   display: block;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 code {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-family: var(--mono);
   font-size: 12.5px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.mark-tile {
+  fill: var(--ink);
+}
+.mark-line {
+  fill: var(--sheet);
+  opacity: 0.7;
+}
+.mark-bar {
+  fill: var(--marker);
 }
 
 .row {
@@ -74,15 +101,19 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
   cursor: pointer;
+}
+
+.row:last-child {
+  border-bottom: none;
 }
 
 .stack {
   display: grid;
   gap: 6px;
-  padding: 10px 0;
+  padding: 11px 0;
 }
 
 select,
@@ -90,104 +121,259 @@ textarea {
   width: 100%;
   font: inherit;
   color: inherit;
-  background: var(--subtle);
-  border: 1px solid var(--line);
+  background: var(--page);
+  border: 1px solid var(--rule);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 9px 11px;
+}
+
+select:disabled {
+  opacity: 0.55;
 }
 
 textarea {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 12.5px;
+  font-family: var(--mono);
+  font-size: 13px;
   resize: vertical;
 }
 
 input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ink);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* A drawn switch for on/off settings; plain checkboxes stay for lists. */
+input[role='switch'] {
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--rule);
+  transition: background 160ms ease;
+}
+
+input[role='switch']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
-  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--sheet);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  transition: transform 160ms ease;
+}
+
+input[role='switch']:checked {
+  background: var(--ink);
+}
+
+input[role='switch']:checked::after {
+  transform: translateX(16px);
+}
+
+input[role='switch']:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input[role='switch'],
+  input[role='switch']::after {
+    transition: none;
+  }
 }
 
 button {
   font: inherit;
+  font-weight: 600;
   color: inherit;
-  background: var(--subtle);
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 1px solid var(--rule);
   border-radius: 8px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   cursor: pointer;
 }
 
+button:hover {
+  border-color: var(--graphite);
+}
+
 button.link {
-  background: none;
   border: none;
   padding: 0;
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.meter {
+  display: inline-flex;
+  gap: 2px;
 }
-
-.dot.low {
+.meter i {
+  width: 10px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--rule);
+}
+.meter[data-level='low'] .on {
   background: var(--low);
 }
-.dot.medium {
+.meter[data-level='medium'] .on {
   background: var(--medium);
 }
-.dot.high {
+.meter[data-level='high'] .on {
   background: var(--high);
 }
-.dot.critical {
+.meter[data-level='critical'] .on {
   background: var(--critical);
+}
+
+.risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 /* Popup */
 
 .popup {
   width: 320px;
-  padding: 16px;
+  padding: 18px 18px 16px;
   display: grid;
-  gap: 4px;
+  gap: 14px;
 }
 
-.popup header {
-  margin-bottom: 8px;
+.popup .status {
+  margin-top: 6px;
+  color: var(--graphite);
+}
+
+.popup .status.on::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--good);
+  vertical-align: 1px;
+}
+
+.popup .group {
+  padding: 0 12px;
+  background: var(--page);
+  border-radius: 10px;
 }
 
 .popup .stats {
-  padding: 12px 0;
+  display: grid;
+  gap: 2px;
 }
 
-.popup .stats p {
-  margin: 0;
+.split {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-top: 8px;
+}
+
+.split i {
+  flex-basis: 0;
+  border-radius: 1px;
+}
+
+.split .redacted {
+  background: var(--bar);
+}
+.split .original {
+  background: var(--high);
+}
+.split .cancelled {
+  background: var(--rule);
+}
+
+.popup .link {
+  justify-self: start;
+  color: var(--graphite);
 }
 
 /* Options */
 
+body:has(.options) {
+  background: var(--page);
+}
+
 .options {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 32px 24px 64px;
+  max-width: 680px;
+  margin: 40px auto 72px;
+  padding: 32px 32px 16px;
+  background: var(--sheet);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--rule);
 }
 
 .options header {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
+}
+
+.options header p {
+  margin-top: 8px;
+}
+
+.options h1 {
+  font-size: 24px;
 }
 
 .options section {
-  margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  column-gap: 24px;
+  padding: 20px 0 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.options section > h2 {
+  grid-row: 1 / span 20;
+  padding-top: 10px;
+}
+
+.options header + section {
+  border-top: none;
+}
+
+.options section > * {
+  grid-column: 2;
+}
+
+.options section > h2 {
+  grid-column: 1;
+}
+
+.options section > p {
+  margin-bottom: 10px;
+}
+
+.options section > button {
+  margin: 4px 0 12px;
 }
 
 .options .problems {
   margin: 8px 0 0;
   padding-left: 18px;
-  color: var(--high);
+  color: var(--critical);
   font-size: 13px;
+}
+
+.options textarea {
+  margin-bottom: 12px;
 }
 
 table {
@@ -195,16 +381,32 @@ table {
   margin: 8px 0 12px;
   border-collapse: collapse;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 th,
 td {
   text-align: left;
-  padding: 6px 8px 6px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 8px 10px 8px 0;
+  border-bottom: 1px solid var(--rule);
 }
 
 th {
-  font-weight: 500;
-  color: var(--muted);
+  font-weight: 600;
+  color: var(--graphite);
+}
+
+@media (max-width: 640px) {
+  .options {
+    margin: 0;
+    padding: 24px 16px 16px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .options section {
+    display: block;
+  }
+  .options section > h2 {
+    padding-top: 0;
+  }
 }

@@ -61,10 +61,18 @@ afterEach(() => {
 });
 
 describe('WarningModal', () => {
-  it('states the risk level and score', () => {
+  it('states the risk level and what the paste looks like', () => {
     render();
-    expect(container.textContent).toContain('critical risk');
-    expect(container.textContent).toContain('/100');
+    expect(container.textContent).toContain('Critical risk');
+    expect(container.textContent).toContain('looks like an env file');
+  });
+
+  it('draws each placeholder as a bar', () => {
+    render();
+    const bars = [...container.querySelectorAll('pre .bar')].map((b) => b.textContent);
+
+    expect(bars).toContain('[DB_PASSWORD_1]');
+    expect(bars).not.toContain('postgres://');
   });
 
   it('names what was found, including the parts of a grouped finding', () => {

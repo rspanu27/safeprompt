@@ -1,5 +1,8 @@
-import type { ScanResult, Severity } from '@safeprompt/core';
+import { splitRedacted, type ScanResult, type Severity } from '@safeprompt/core';
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { CONTEXT_PHRASES, LEVEL_NAMES } from '../labels';
+import { Mark } from '../Mark';
+import { Meter } from '../Meter';
 import { groupFindings, type FindingGroup } from './group';
 import { MODAL_CSS } from './styles';
 
@@ -23,18 +26,6 @@ export interface WarningModalProps {
   readonly notice?: string;
 }
 
-function summarise(groups: readonly FindingGroup[]): string {
-  const [worst] = groups;
-  if (worst === undefined) return 'Nothing sensitive was found.';
-
-  const found =
-    groups.length === 1
-      ? `Found: ${worst.name}.`
-      : `${groups.length} kinds of sensitive content found. Most serious: ${worst.name}.`;
-
-  return `${found} You can send a redacted version instead.`;
-}
-
 function detail(group: FindingGroup): string | null {
   if (group.parts.length > 1) return group.parts.join(', ');
   if (group.count > 1) return `${group.count} found`;
@@ -52,6 +43,7 @@ export function WarningModal({
   const primary = useRef<HTMLButtonElement>(null);
   const pressStartedOnBackdrop = useRef(false);
   const groups = groupFindings(result.findings);
+  const level = result.risk.level;
 
   useEffect(() => {
     // Without this, focus stays in the composer behind the modal and anything
@@ -109,6 +101,8 @@ export function WarningModal({
     if (outside) onCancel();
   };
 
+  let bar = 0;
+
   return (
     <>
       <style>{MODAL_CSS}</style>
@@ -123,31 +117,49 @@ export function WarningModal({
           onKeyDown={onPanelKeyDown}
         >
           <header>
-            <span className="level">
-              <span className={`dot ${result.risk.level}`} />
-              {result.risk.level} risk · {result.risk.score}/100 · {result.context}
-            </span>
-            <h1 id="safeprompt-title">{HEADLINE[result.risk.level]}</h1>
-            <p className="summary">{summarise(groups)}</p>
+            <p className="brand">
+              <Mark />
+              SafePrompt held this paste
+            </p>
+            <h1 id="safeprompt-title">{HEADLINE[level]}</h1>
+            <p className="level">
+              <Meter level={level} />
+              <strong>{LEVEL_NAMES[level]}</strong>
+              <span>in what looks like {CONTEXT_PHRASES[result.context]}</span>
+            </p>
           </header>
 
           <div className="body">
+            <h2 id="safeprompt-preview">As it would be sent</h2>
+            <pre aria-labelledby="safeprompt-preview">
+              {splitRedacted(result.redacted, result.placeholders.keys()).map((part, i) =>
+                part.token ? (
+                  <span
+                    key={i}
+                    className="bar"
+                    style={{ animationDelay: `${Math.min(bar++, 12) * 40}ms` }}
+                  >
+                    {part.text}
+                  </span>
+                ) : (
+                  part.text
+                ),
+              )}
+            </pre>
+
             <h2>What was found</h2>
             <ul>
               {groups.map((group) => (
                 <li key={group.detectorId}>
-                  <div className="finding-label">
-                    <span className={`dot ${group.severity}`} />
-                    {group.name}
-                  </div>
+                  <p className="finding-label">
+                    <span>{group.name}</span>
+                    <span className={`severity ${group.severity}`}>{group.severity}</span>
+                  </p>
                   {detail(group) !== null && <p className="finding-parts">{detail(group)}</p>}
                   <p className="finding-why">{group.evidence.join('. ')}</p>
                 </li>
               ))}
             </ul>
-
-            <h2>Redacted version</h2>
-            <pre>{result.redacted}</pre>
           </div>
 
           {notice !== undefined && (

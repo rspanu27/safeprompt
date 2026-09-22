@@ -2,137 +2,212 @@
  * Everything the modal needs, inlined into the shadow root.
  *
  * No external stylesheet and no page styles reach in, so the rules can be plain
- * and unqualified. `all: initial` on the host means nothing is inherited.
+ * and unqualified. `all: initial` on the host means nothing is inherited. It
+ * uses system fonts, because a bundled font would have to be exposed to every
+ * page as a web-accessible resource.
  */
 export const MODAL_CSS = `
   :host { all: initial; }
 
   .backdrop {
+    --page: #f4f6f8;
+    --sheet: #ffffff;
+    --ink: #18212b;
+    --graphite: #5c6773;
+    --rule: #d5dbe2;
+    --bar: #000000;
+    --bar-text: #f4f6f8;
+    --focus: #1d5fd6;
+    --low: #5c6773;
+    --medium: #a86a00;
+    --high: #c2410c;
+    --critical: #b42318;
+    --shade: rgb(24 33 43 / 42%);
+
     position: fixed;
     inset: 0;
     display: grid;
     place-items: center;
-    background: rgb(15 23 42 / 45%);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--shade);
+    color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .backdrop {
+      --page: #151b22;
+      --sheet: #1c232c;
+      --ink: #e6eaef;
+      --graphite: #9aa4af;
+      --rule: #2e3844;
+      --bar: #e6eaef;
+      --bar-text: #151b22;
+      --focus: #7fb0ff;
+      --low: #9aa4af;
+      --medium: #e0a53a;
+      --high: #f08a4b;
+      --critical: #f0645a;
+      --shade: rgb(0 0 0 / 55%);
+    }
   }
 
   .panel {
-    width: min(560px, calc(100vw - 32px));
-    max-height: min(640px, calc(100vh - 48px));
+    width: min(580px, calc(100vw - 32px));
+    max-height: min(680px, calc(100vh - 48px));
     display: flex;
     flex-direction: column;
-    background: #fff;
-    color: #0f172a;
-    border-radius: 12px;
-    box-shadow: 0 24px 48px rgb(15 23 42 / 24%);
+    background: var(--sheet);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 var(--rule), 0 28px 60px rgb(0 0 0 / 28%);
     overflow: hidden;
   }
 
-  header { padding: 20px 24px 12px; }
+  header { padding: 20px 24px 4px; }
 
-  .level {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
+  p { margin: 0; }
 
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot.low { background: #64748b; }
-  .dot.medium { background: #ca8a04; }
-  .dot.high { background: #ea580c; }
-  .dot.critical { background: #dc2626; }
-
-  h1 { margin: 8px 0 4px; font-size: 18px; font-weight: 600; }
-  .summary { margin: 0; font-size: 14px; color: #475569; line-height: 1.5; }
-
-  .body { padding: 4px 24px 16px; overflow-y: auto; }
-
-  h2 {
-    margin: 16px 0 8px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #64748b;
-  }
-
-  ul { margin: 0; padding: 0; list-style: none; }
-
-  li {
-    padding: 10px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-bottom: 6px;
-  }
-
-  .finding-label {
+  .brand {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .finding-parts { margin: 4px 0 0 16px; font-size: 12.5px; color: #334155; }
-  .finding-why { margin: 4px 0 0 16px; font-size: 12.5px; color: #64748b; line-height: 1.45; }
-
-  .notice {
-    margin: 0;
-    padding: 10px 24px;
     font-size: 13px;
-    color: #9a3412;
-    background: #fff7ed;
-    border-top: 1px solid #fed7aa;
+    color: var(--graphite);
+  }
+
+  .mark-tile { fill: var(--ink); }
+  .mark-line { fill: var(--sheet); opacity: 0.7; }
+  .mark-bar { fill: #ffe36e; }
+
+  h1 {
+    margin: 12px 0 8px;
+    font-size: 21px;
+    line-height: 1.25;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  .level {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    color: var(--graphite);
+  }
+
+  .level strong { color: var(--ink); font-weight: 600; }
+
+  .meter { display: inline-flex; gap: 3px; }
+  .meter i { width: 14px; height: 6px; border-radius: 1px; background: var(--rule); }
+  .meter[data-level="low"] .on { background: var(--low); }
+  .meter[data-level="medium"] .on { background: var(--medium); }
+  .meter[data-level="high"] .on { background: var(--high); }
+  .meter[data-level="critical"] .on { background: var(--critical); }
+
+  .body { padding: 8px 24px 20px; overflow-y: auto; }
+
+  h2 {
+    margin: 18px 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--graphite);
   }
 
   pre {
     margin: 0;
-    padding: 12px;
-    max-height: 180px;
+    padding: 14px 16px;
+    max-height: 200px;
     overflow: auto;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--page);
     border-radius: 8px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 12.5px;
-    line-height: 1.5;
+    font: 12.5px/1.7 ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .bar {
+    margin: 0 1px;
+    padding: 1px 3px;
+    border-radius: 2px;
+    background: linear-gradient(var(--bar), var(--bar)) no-repeat left / 100% 100%;
+    color: var(--bar-text);
+    font-size: 11.5px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    animation: sweep 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes sweep {
+    from { background-size: 0% 100%; color: var(--ink); }
+    60% { color: var(--ink); }
+    to { background-size: 100% 100%; color: var(--bar-text); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar { animation: none; }
+  }
+
+  ul { margin: 0; padding: 0; list-style: none; }
+
+  li { padding: 10px 0; border-top: 1px solid var(--rule); }
+  li:first-child { border-top: none; padding-top: 2px; }
+
+  .finding-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-weight: 600;
+  }
+
+  .severity { font-size: 12.5px; font-weight: 500; }
+  .severity.low { color: var(--low); }
+  .severity.medium { color: var(--medium); }
+  .severity.high { color: var(--high); }
+  .severity.critical { color: var(--critical); }
+
+  .finding-parts { margin-top: 2px; font-size: 13px; }
+  .finding-why { margin-top: 2px; font-size: 13px; color: var(--graphite); }
+
+  .notice {
+    padding: 10px 24px;
+    font-size: 13px;
+    color: var(--critical);
+    border-top: 1px solid var(--rule);
   }
 
   footer {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-    padding: 14px 24px;
-    border-top: 1px solid #e2e8f0;
-    background: #f8fafc;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--rule);
   }
 
   button {
     font: inherit;
-    font-size: 14px;
-    padding: 8px 14px;
+    font-weight: 500;
+    padding: 8px 16px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #0f172a;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink);
     cursor: pointer;
   }
 
-  button:hover { background: #f1f5f9; }
-  button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  button:hover { border-color: var(--graphite); }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  button.primary {
-    background: #0f172a;
-    border-color: #0f172a;
-    color: #fff;
-    font-weight: 500;
+  button.primary { background: var(--ink); border-color: var(--ink); color: var(--sheet); }
+  button.primary:hover { opacity: 0.88; }
+
+  button.subtle { margin-right: auto; border-color: transparent; color: var(--graphite); }
+  button.subtle:hover { color: var(--ink); border-color: transparent; }
+
+  @media (max-width: 480px) {
+    header { padding: 18px 18px 4px; }
+    .body { padding: 8px 18px 16px; }
+    footer { flex-wrap: wrap; padding: 12px 18px 16px; }
+    footer button { flex: 1 1 auto; }
+    button.subtle { margin-right: 0; }
   }
-
-  button.primary:hover { background: #1e293b; }
-  button.subtle { border-color: transparent; color: #475569; }
-  button.subtle:hover { background: #e2e8f0; }
 `;

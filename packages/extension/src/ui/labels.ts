@@ -1,5 +1,29 @@
-import { DETECTORS, type Category, type Detector, type Severity } from '@safeprompt/core';
+import {
+  DETECTORS,
+  type Category,
+  type ContentContext,
+  type Detector,
+  type Severity,
+} from '@safeprompt/core';
 import type { SiteId } from '../settings/schema';
+
+export const LEVEL_NAMES: Record<Severity, string> = {
+  low: 'Low risk',
+  medium: 'Medium risk',
+  high: 'High risk',
+  critical: 'Critical risk',
+};
+
+/** Reads after "looks like". */
+export const CONTEXT_PHRASES: Record<ContentContext, string> = {
+  'source-code': 'source code',
+  'env-file': 'an env file',
+  'stack-trace': 'a stack trace',
+  json: 'JSON',
+  sql: 'SQL',
+  log: 'a log',
+  'plain-text': 'plain text',
+};
 
 export const SITE_NAMES: Record<SiteId, string> = {
   chatgpt: 'ChatGPT',

@@ -4,6 +4,8 @@ import { resolveAdapter } from '../../content/adapters';
 import { SITES, type SiteId } from '../../settings/schema';
 import { localArea } from '../../storage/browser';
 import { Popup } from '../../ui/popup/Popup';
+import '@fontsource-variable/atkinson-hyperlegible-next';
+import '@fontsource-variable/atkinson-hyperlegible-mono';
 import '../../ui/pages.css';
 
 /**

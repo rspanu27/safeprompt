@@ -8,10 +8,13 @@ import {
   ACTION_NAMES,
   CATEGORY_NAMES,
   DETECTORS_BY_CATEGORY,
+  LEVEL_NAMES,
   SITE_NAMES,
   THRESHOLD_OPTIONS,
   siteName,
 } from '../labels';
+import { Mark } from '../Mark';
+import { Meter } from '../Meter';
 
 export interface OptionsProps {
   readonly settingsArea: StorageArea;
@@ -49,7 +52,10 @@ export function Options({ settingsArea, historyArea }: OptionsProps) {
   return (
     <main className="options">
       <header>
-        <h1>SafePrompt</h1>
+        <h1>
+          <Mark size={28} />
+          SafePrompt settings
+        </h1>
         <p className="muted">
           Everything runs in your browser. Nothing you paste is stored or sent anywhere.
         </p>
@@ -189,7 +195,10 @@ export function Options({ settingsArea, historyArea }: OptionsProps) {
                     <td>{when(entry.at)}</td>
                     <td>{siteName(entry.site)}</td>
                     <td>
-                      <span className={`dot ${entry.level}`} /> {entry.level}
+                      <span className="risk">
+                        <Meter level={entry.level} />
+                        {LEVEL_NAMES[entry.level]}
+                      </span>
                     </td>
                     <td>{ACTION_NAMES[entry.action]}</td>
                   </tr>
