@@ -3,6 +3,8 @@
 ## Unreleased
 
 - New icon: a message with a line blacked out, behind a shield.
+- Fixed pastes not being checked on ChatGPT when signed out. The signed-out
+  page uses a different message box, which the extension did not recognise.
 
 ## 0.2.0 (2026-09-22)
 

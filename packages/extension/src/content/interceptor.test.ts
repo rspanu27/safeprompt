@@ -106,6 +106,17 @@ describe('handlePaste', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
+  it('holds a paste into the ChatGPT composer when signed out', () => {
+    // Signed out, ChatGPT serves a plain textarea instead of ProseMirror.
+    const el = composer();
+    el.id = 'mobile-composer-prompt';
+    el.name = 'prompt';
+
+    const event = pasteEvent(SECRET, el);
+    expect(handlePaste(event, { onHold: vi.fn(), location: url })).not.toBeNull();
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('lets the paste through when the clipboard throws', () => {
     const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
     Object.defineProperty(event, 'clipboardData', {
