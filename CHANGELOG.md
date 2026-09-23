@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 (2026-09-23)
 
 - New icon: a message with a line blacked out, behind a shield.
 - Fixed pastes not being checked on ChatGPT when signed out. The signed-out
