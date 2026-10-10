@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 (2026-10-10)
+
+The first stable release.
 
 - SafePrompt now says when it isn't checking. If a paste goes into a text box on
   a page where it can't find the message box, a notice says that paste was not

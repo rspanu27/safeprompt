@@ -72,7 +72,7 @@ catch.
 
 ## Install
 
-1. Download `safeprompt-0.1.0-chrome.zip` from the
+1. Download the `safeprompt-…-chrome.zip` file from the
    [latest release](https://github.com/rspanu27/safeprompt/releases/latest) and
    unzip it.
 2. Open `chrome://extensions` and turn on **Developer mode**.
