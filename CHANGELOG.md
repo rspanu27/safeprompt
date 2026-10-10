@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 (2026-10-10)
+
+- The extension is now called "SafePrompt: Paste Protection for AI Chats" in the
+  store and on the extensions page, and its description says "personal data"
+  where it said "PII". Inside the extension it is still SafePrompt.
+
 ## 1.0.0 (2026-10-10)
 
 The first stable release.
