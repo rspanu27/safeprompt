@@ -23,4 +23,11 @@ export interface SiteAdapter {
    * would be three copies of the same code.
    */
   resolveTarget(event: ClipboardEvent): PasteTarget | null;
+  /**
+   * Whether the page has an editor this adapter would accept.
+   *
+   * False on a supported site usually means the site changed its markup, and
+   * pastes are going through unchecked.
+   */
+  hasComposer(doc: Document): boolean;
 }

@@ -25,4 +25,6 @@ export const genericAdapter: SiteAdapter = {
   id: 'generic',
   matches: () => true,
   resolveTarget: targetFromEvent,
+  // Any editable field counts, so there is nothing to go missing.
+  hasComposer: () => true,
 };

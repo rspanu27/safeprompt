@@ -2,6 +2,7 @@ import { scanText, severityAtLeast, type ScanResult } from '@safeprompt/core';
 import { policyFor, type PastePolicy } from '../settings/policy';
 import { DEFAULT_SETTINGS } from '../settings/schema';
 import { resolveAdapter } from './adapters';
+import { targetFromEvent } from './adapters/generic';
 import type { PasteTarget } from './adapters/types';
 import { failOpen } from './guard';
 import { captureSelection, insertText, type SelectionSnapshot } from './insert';
@@ -19,9 +20,24 @@ export interface PasteDecision {
 export interface InterceptorOptions {
   /** Called when a paste is held. The paste is already cancelled by this point. */
   readonly onHold: (decision: PasteDecision) => void;
+  /**
+   * Called when a paste went through unchecked because the page has no message
+   * box the site's adapter recognises. The paste is not touched.
+   */
+  readonly onUnwatched?: (site: string) => void;
   /** Read at the moment of each paste, so settings changes apply immediately. */
   readonly policy?: (site: string) => PastePolicy;
   readonly location?: URL;
+}
+
+/**
+ * A message box is a textarea or a rich editor, never a single-line input.
+ * Leaving inputs out keeps a paste into a login or search field from looking
+ * like a missed message box.
+ */
+function couldBeComposer(event: ClipboardEvent): boolean {
+  const target = targetFromEvent(event);
+  return target !== null && !(target.element instanceof HTMLInputElement);
 }
 
 const defaultPolicy = (site: string): PastePolicy => policyFor(DEFAULT_SETTINGS, site);
@@ -47,7 +63,15 @@ export function handlePaste(
     if (!policy.active) return null;
 
     const target = adapter.resolveTarget(event);
-    if (target === null) return null;
+    if (target === null) {
+      // Not the message box, which is normally fine: a search field, say. But
+      // if the page has no message box the adapter knows at all, the site has
+      // probably changed and this may be the composer going unchecked.
+      if (couldBeComposer(event) && !adapter.hasComposer(document)) {
+        options.onUnwatched?.(adapter.id);
+      }
+      return null;
+    }
 
     const result = scanText(text, policy.scan);
     if (result.findings.length === 0) return null;

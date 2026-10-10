@@ -117,6 +117,82 @@ describe('handlePaste', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
+  describe('when the page has no message box it recognises', () => {
+    it('reports a paste into a text area, and still lets it through', () => {
+      const onUnwatched = vi.fn();
+      const event = pasteEvent(SECRET, composer());
+
+      expect(handlePaste(event, { onHold: vi.fn(), onUnwatched, location: url })).toBeNull();
+      expect(onUnwatched).toHaveBeenCalledWith('chatgpt');
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it('reports a paste into a rich editor', () => {
+      const onUnwatched = vi.fn();
+      const editor = document.createElement('div');
+      editor.setAttribute('contenteditable', 'true');
+      document.body.appendChild(editor);
+
+      handlePaste(pasteEvent(CLEAN, editor), { onHold: vi.fn(), onUnwatched, location: url });
+      expect(onUnwatched).toHaveBeenCalledOnce();
+    });
+
+    it('says nothing when the message box is there and the paste went elsewhere', () => {
+      // A search field or a settings form, with the real composer on the page.
+      const onUnwatched = vi.fn();
+      const real = composer();
+      real.id = 'prompt-textarea';
+
+      handlePaste(pasteEvent(SECRET, composer()), { onHold: vi.fn(), onUnwatched, location: url });
+      expect(onUnwatched).not.toHaveBeenCalled();
+    });
+
+    it('says nothing for a single-line input, such as a login field', () => {
+      const onUnwatched = vi.fn();
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+
+      handlePaste(pasteEvent(SECRET, input), { onHold: vi.fn(), onUnwatched, location: url });
+      expect(onUnwatched).not.toHaveBeenCalled();
+    });
+
+    it('says nothing when the paste is not going into a field at all', () => {
+      const onUnwatched = vi.fn();
+
+      handlePaste(pasteEvent(SECRET, document.body), {
+        onHold: vi.fn(),
+        onUnwatched,
+        location: url,
+      });
+      expect(onUnwatched).not.toHaveBeenCalled();
+    });
+
+    it('says nothing when the site is switched off', () => {
+      const onUnwatched = vi.fn();
+      const policy = (): PastePolicy => ({ active: false, threshold: 'medium', scan: {} });
+
+      handlePaste(pasteEvent(SECRET, composer()), {
+        onHold: vi.fn(),
+        onUnwatched,
+        policy,
+        location: url,
+      });
+      expect(onUnwatched).not.toHaveBeenCalled();
+    });
+
+    it('does not break the paste if showing the notice fails', () => {
+      const onUnwatched = vi.fn(() => {
+        throw new Error('notice broke');
+      });
+      const event = pasteEvent(SECRET, composer());
+
+      expect(() =>
+        handlePaste(event, { onHold: vi.fn(), onUnwatched, location: url }),
+      ).not.toThrow();
+      expect(event.defaultPrevented).toBe(false);
+    });
+  });
+
   it('lets the paste through when the clipboard throws', () => {
     const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
     Object.defineProperty(event, 'clipboardData', {

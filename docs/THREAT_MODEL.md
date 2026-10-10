@@ -75,7 +75,9 @@ requests.
 - Sites other than ChatGPT, Claude and Gemini. Pastes anywhere else are not seen.
 - Site redesigns. The adapters depend on how each site's page is built. If a
   site changes its editor, pastes there go through without being checked until
-  the adapter is updated, and the user is not told.
+  the adapter is updated. SafePrompt shows a notice when a paste goes into a
+  text box on a page where it can't find the message box, and the popup says the
+  same, but it does not hold the paste.
 - Secrets that no detector recognises. [ARCHITECTURE.md](ARCHITECTURE.md) lists
   the formats that are covered. A token format with no recognisable prefix,
   pasted without a name like `password` or `api_key` next to it, will be missed.

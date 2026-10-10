@@ -1,4 +1,5 @@
 const HOST_ID = 'safeprompt-host';
+const NOTICE_ID = 'safeprompt-notice';
 
 export interface ModalHost {
   /** Where React mounts. Inside a closed shadow root. */
@@ -15,16 +16,30 @@ export interface ModalHost {
  * original" button look like "Cancel", that would be a security problem.
  */
 export function createModalHost(doc: Document = document): ModalHost {
-  doc.getElementById(HOST_ID)?.remove();
+  return createHost(doc, HOST_ID, { inset: '0' });
+}
+
+/**
+ * The same protection for the small notice in the corner. It is only as big as
+ * its content, so the rest of the page stays clickable.
+ */
+export function createNoticeHost(doc: Document = document): ModalHost {
+  return createHost(doc, NOTICE_ID, { right: '16px', bottom: '16px' });
+}
+
+function createHost(doc: Document, id: string, place: Record<string, string>): ModalHost {
+  doc.getElementById(id)?.remove();
 
   const host = doc.createElement('div');
-  host.id = HOST_ID;
+  host.id = id;
 
   // The page may set `* { display: none }` or reposition anything it can select.
   host.style.setProperty('all', 'initial', 'important');
   host.style.setProperty('position', 'fixed', 'important');
-  host.style.setProperty('inset', '0', 'important');
   host.style.setProperty('z-index', '2147483647', 'important');
+  for (const [property, value] of Object.entries(place)) {
+    host.style.setProperty(property, value, 'important');
+  }
 
   const shadow = host.attachShadow({ mode: 'closed' });
 

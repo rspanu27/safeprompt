@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- SafePrompt now says when it isn't checking. If a paste goes into a text box on
+  a page where it can't find the message box, a notice says that paste was not
+  checked. It can be reported on GitHub, with the site and version filled in and
+  nothing about the page or the paste, or by email to an address the notice
+  shows and copies on click.
+- The popup reports what is really happening in the tab: watching, no message
+  box found, or that the tab needs a reload before pastes are checked.
+- Scrollbars inside the warning dialog now follow dark mode.
+
 ## 0.2.1 (2026-09-23)
 
 - New icon: a message with a line blacked out, behind a shield.

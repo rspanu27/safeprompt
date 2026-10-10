@@ -2,12 +2,14 @@ import { scanText } from '@safeprompt/core';
 import { createRoot } from 'react-dom/client';
 import { memoryArea } from '../storage/area';
 import { WarningModal } from '../ui/modal/WarningModal';
+import { UnwatchedNotice } from '../ui/notice/UnwatchedNotice';
 import { Options } from '../ui/options/Options';
-import { Popup } from '../ui/popup/Popup';
+import { Popup, type TabStatus } from '../ui/popup/Popup';
 
 /**
  * Development only, never bundled into the extension. Open with `?view=modal`,
- * `?view=popup` or `?view=options`.
+ * `?view=notice`, `?view=popup` or `?view=options`. The popup also takes
+ * `&page=no-composer` or `&page=unreachable`.
  */
 
 const PASTE = [
@@ -57,8 +59,22 @@ const area = memoryArea({
   ],
 });
 
-const view = new URLSearchParams(location.search).get('view') ?? 'modal';
+const params = new URLSearchParams(location.search);
+const view = params.get('view') ?? 'modal';
 const container = document.getElementById('root');
+
+/** Injected UI lives in a shadow root on a real page, so render it the same way. */
+function shadowOverFiller(target: HTMLElement, place: string): ShadowRoot {
+  document.body.style.cssText = 'margin:0;font:16px system-ui;background:#fff';
+  target.innerHTML = '<p style="padding:40px;max-width:640px">'.concat(
+    'A page behind the extension. '.repeat(60),
+    '</p>',
+  );
+  const host = document.createElement('div');
+  host.style.cssText = place;
+  document.body.appendChild(host);
+  return host.attachShadow({ mode: 'open' });
+}
 
 async function mount(target: HTMLElement): Promise<void> {
   if (view === 'popup' || view === 'options') {
@@ -70,7 +86,8 @@ async function mount(target: HTMLElement): Promise<void> {
         <Popup
           settingsArea={area}
           historyArea={area}
-          site={(new URLSearchParams(location.search).get('site') as 'claude' | null) ?? 'claude'}
+          site={(params.get('site') as 'claude' | null) ?? 'claude'}
+          page={(params.get('page') as TabStatus | null) ?? 'watching'}
           onOpenSettings={() => undefined}
         />
       ) : (
@@ -80,20 +97,16 @@ async function mount(target: HTMLElement): Promise<void> {
     return;
   }
 
-  // The modal lives in a shadow root on a real page, so render it the same way
-  // over some filler content.
-  document.body.style.cssText = 'margin:0;font:16px system-ui;background:#fff';
-  target.innerHTML = '<p style="padding:40px;max-width:640px">'.concat(
-    'A page behind the modal. '.repeat(60),
-    '</p>',
-  );
-  const host = document.createElement('div');
-  document.body.appendChild(host);
-  const shadow = host.attachShadow({ mode: 'open' });
-  const text = new URLSearchParams(location.search).get('text') ?? PASTE;
+  if (view === 'notice') {
+    const shadow = shadowOverFiller(target, 'position:fixed;right:16px;bottom:16px');
+    createRoot(shadow).render(<UnwatchedNotice site="chatgpt" onDismiss={() => undefined} />);
+    return;
+  }
+
+  const shadow = shadowOverFiller(target, 'position:fixed;inset:0');
   createRoot(shadow).render(
     <WarningModal
-      result={scanText(text)}
+      result={scanText(params.get('text') ?? PASTE)}
       onPasteRedacted={() => undefined}
       onPasteOriginal={() => undefined}
       onCancel={() => undefined}

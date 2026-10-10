@@ -244,7 +244,8 @@ button.link {
   color: var(--graphite);
 }
 
-.popup .status.on::before {
+.popup .status.on::before,
+.popup .status.warn::before {
   content: '';
   display: inline-block;
   width: 7px;
@@ -253,6 +254,35 @@ button.link {
   border-radius: 50%;
   background: var(--good);
   vertical-align: 1px;
+}
+
+.popup .status.warn {
+  color: var(--ink);
+}
+
+.popup .status.warn::before {
+  background: var(--high);
+}
+
+/* The address is one long word, so let it break instead of overflowing. */
+.popup .hint {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--graphite);
+  overflow-wrap: anywhere;
+}
+
+.popup .hint a,
+.popup .hint .link,
+.popup .hint .address,
+.popup .hint .copied {
+  color: var(--ink);
+  font-weight: inherit;
+  text-underline-offset: 3px;
+}
+
+.popup .hint .address {
+  user-select: all;
 }
 
 .popup .group {

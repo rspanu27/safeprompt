@@ -2,22 +2,28 @@ import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 // Imported rather than relying on WXT's auto-import, so the file typechecks
 // without depending on generated declarations.
+import { browser } from 'wxt/browser';
 import { defineContentScript } from 'wxt/utils/define-content-script';
-import { createModalHost } from '../content/host';
+import { createModalHost, createNoticeHost } from '../content/host';
 import {
   cancelPaste,
   completePaste,
   installInterceptor,
   type PasteDecision,
 } from '../content/interceptor';
+import { isStatusRequest, pageStatus } from '../content/status';
 import { historyEntry, recordPaste, type PasteAction } from '../history/history';
 import { policyFor } from '../settings/policy';
 import { createSettingsCache, type SettingsCache } from '../settings/store';
 import { localArea } from '../storage/browser';
 import { WarningModal } from '../ui/modal/WarningModal';
+import { UnwatchedNotice } from '../ui/notice/UnwatchedNotice';
 
 const INSERT_FAILED =
   'The editor did not accept the text, so nothing was pasted. You can copy the redacted version above by hand.';
+
+/** Long enough to read, short enough not to linger on a page it doesn't apply to. */
+const NOTICE_MS = 20_000;
 
 export default defineContentScript({
   matches: [
@@ -39,9 +45,45 @@ export default defineContentScript({
       onHold: (decision) => {
         showModal(decision, settings);
       },
+      onUnwatched: showNotice,
+    });
+
+    // The popup asks what this page looks like, so it can say when pastes
+    // here are not being checked instead of claiming to watch them.
+    browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+      if (isStatusRequest(message)) sendResponse(pageStatus());
     });
   },
 });
+
+let noticeShown = false;
+
+/**
+ * Say that a paste went through unchecked.
+ *
+ * Once per page. These sites rarely reload, so that is about once per tab,
+ * which is enough to be noticed without nagging on a page that has no message
+ * box for a good reason, like a settings page.
+ */
+function showNotice(site: string): void {
+  if (noticeShown) return;
+  noticeShown = true;
+
+  const host = createNoticeHost();
+  const root = createRoot(host.container);
+  let open = true;
+
+  const close = (): void => {
+    if (!open) return;
+    open = false;
+    clearTimeout(timer);
+    root.unmount();
+    host.remove();
+  };
+
+  const timer = setTimeout(close, NOTICE_MS);
+  root.render(createElement(UnwatchedNotice, { site, onDismiss: close }));
+}
 
 function record(decision: PasteDecision, action: PasteAction, settings: SettingsCache): void {
   if (!settings.current().history) return;

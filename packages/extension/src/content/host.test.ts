@@ -1,5 +1,51 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createModalHost } from './host';
+import { createModalHost, createNoticeHost } from './host';
+
+describe('createNoticeHost', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('sits in a corner instead of covering the page', () => {
+    createNoticeHost();
+    const host = document.getElementById('safeprompt-notice');
+
+    expect(host?.style.getPropertyValue('position')).toBe('fixed');
+    expect(host?.style.getPropertyValue('right')).toBe('16px');
+    expect(host?.style.getPropertyValue('bottom')).toBe('16px');
+    expect(host?.style.getPropertyValue('top')).toBe('');
+    expect(host?.style.getPropertyValue('left')).toBe('');
+  });
+
+  it('is closed against the page like the dialog', () => {
+    const { container } = createNoticeHost();
+    container.textContent = 'notice text';
+
+    expect(document.getElementById('safeprompt-notice')?.shadowRoot).toBeNull();
+    expect(document.body.textContent).not.toContain('notice text');
+  });
+
+  it('does not leak clicks to the page', () => {
+    const pageListener = vi.fn();
+    document.addEventListener('click', pageListener);
+
+    const { container } = createNoticeHost();
+    const button = document.createElement('button');
+    container.appendChild(button);
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+
+    expect(pageListener).not.toHaveBeenCalled();
+    document.removeEventListener('click', pageListener);
+  });
+
+  it('leaves an open dialog alone', () => {
+    createModalHost();
+    createNoticeHost();
+
+    expect(document.getElementById('safeprompt-host')).not.toBeNull();
+    expect(document.getElementById('safeprompt-notice')).not.toBeNull();
+  });
+});
 
 describe('createModalHost', () => {
   beforeEach(() => {

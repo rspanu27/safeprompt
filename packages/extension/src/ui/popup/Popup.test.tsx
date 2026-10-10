@@ -4,7 +4,7 @@ import { historyEntry } from '../../history/history';
 import type { SiteId } from '../../settings/schema';
 import { memoryArea, type StorageArea } from '../../storage/area';
 import { click, control, mount, settle, type Mounted } from '../testing';
-import { Popup } from './Popup';
+import { Popup, type TabStatus } from './Popup';
 
 const NOW = 10_000_000_000;
 let mounted: Mounted | undefined;
@@ -17,6 +17,7 @@ afterEach(() => {
 async function open(
   options: {
     site?: SiteId | null;
+    page?: TabStatus;
     settings?: StorageArea;
     history?: StorageArea;
     onOpenSettings?: () => void;
@@ -28,6 +29,7 @@ async function open(
       settingsArea={settingsArea}
       historyArea={options.history ?? memoryArea()}
       site={options.site === undefined ? 'claude' : options.site}
+      {...(options.page === undefined ? {} : { page: options.page })}
       onOpenSettings={options.onOpenSettings ?? (() => undefined)}
       now={NOW}
     />,
@@ -39,6 +41,40 @@ describe('Popup', () => {
   it('says which site it is watching', async () => {
     const { container } = await open({ site: 'claude' });
     expect(container.textContent).toContain('Watching pastes on Claude.');
+  });
+
+  it('says so when the page has no message box it recognises', async () => {
+    const { container } = await open({ site: 'chatgpt', page: 'no-composer' });
+
+    expect(container.textContent).toContain("Can't find a message box on this page");
+    expect(container.textContent).not.toContain('Watching pastes');
+  });
+
+  it('offers to report it on GitHub, naming the site, or by email', async () => {
+    const { container } = await open({ site: 'chatgpt', page: 'no-composer' });
+    const link = container.querySelector('a');
+
+    expect(link?.getAttribute('href')).toContain('Message%20box%20not%20found%20on%20ChatGPT');
+    expect(link?.getAttribute('rel')).toContain('noreferrer');
+    expect(container.textContent).toContain('or email raul.safeprompt@gmail.com');
+  });
+
+  it('asks for a reload when the tab is not running SafePrompt yet', async () => {
+    const { container } = await open({ site: 'gemini', page: 'unreachable' });
+
+    expect(container.textContent).toContain('Reload this tab to start checking pastes on Gemini.');
+    expect(container.querySelector('a')).toBeNull();
+  });
+
+  it('does not warn about the page while the site is paused', async () => {
+    const { container } = await open({
+      site: 'claude',
+      page: 'no-composer',
+      settings: memoryArea({ settings: { sites: { claude: false } } }),
+    });
+
+    expect(container.textContent).toContain('Paused on Claude.');
+    expect(container.querySelector('a')).toBeNull();
   });
 
   it('explains itself on an unsupported site', async () => {

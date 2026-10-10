@@ -16,4 +16,6 @@ export const claudeAdapter: SiteAdapter = {
 
     return target.element.closest(COMPOSER) === null ? null : target;
   },
+
+  hasComposer: (doc) => doc.querySelector(COMPOSER) !== null,
 };

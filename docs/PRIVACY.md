@@ -4,6 +4,15 @@ SafePrompt doesn't send anything anywhere. The extension makes no network
 requests of any kind: no analytics, no telemetry and no error reporting. All
 scanning happens in your browser.
 
+There is one link out. If SafePrompt can't find the message box on a page, it
+offers to report that on GitHub. Nothing happens unless you click it, and
+nothing is sent until you submit the issue yourself. The issue starts with the
+site's name, the SafePrompt version and two questions for you to answer. It
+doesn't include the page address or anything you pasted.
+
+The same notice shows a contact email address. Clicking it copies the address to
+your clipboard and does nothing else.
+
 ## What it reads
 
 When you paste into the message box on ChatGPT, Claude or Gemini, SafePrompt

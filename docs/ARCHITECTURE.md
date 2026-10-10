@@ -214,8 +214,17 @@ everything that could throw has succeeded. If an adapter breaks, the paste goes
 through as normal.
 
 This has a cost: after a site redesign, pastes on that site aren't checked until
-the adapter is updated, and the user isn't told. The alternative would be
-blocking or losing people's pastes, and they would uninstall the extension.
+the adapter is updated. The alternative would be blocking or losing people's
+pastes, and they would uninstall the extension.
+
+What the extension can do is say so. Each adapter can tell whether its message
+box is on the page. If a paste goes into a text area or a rich editor while the
+page has no message box the adapter recognises, a small notice says that paste
+was not checked. It shows once per page, and it leaves out single-line inputs so
+that a login or search field doesn't set it off. The popup asks the page the
+same question, so it says "can't find a message box" where it used to say it was
+watching. If the page doesn't answer at all, the tab was open before the
+extension was installed or updated, and the popup asks for a reload.
 
 ### The warning dialog
 

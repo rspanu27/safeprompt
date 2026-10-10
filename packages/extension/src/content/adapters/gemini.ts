@@ -16,4 +16,6 @@ export const geminiAdapter: SiteAdapter = {
 
     return target.element.closest(COMPOSER) === null ? null : target;
   },
+
+  hasComposer: (doc) => doc.querySelector(COMPOSER) !== null,
 };
