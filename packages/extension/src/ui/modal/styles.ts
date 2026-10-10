@@ -1,3 +1,5 @@
+import { THEME_CSS } from '../theme';
+
 /**
  * Everything the modal needs, inlined into the shadow root.
  *
@@ -7,48 +9,18 @@
  * page as a web-accessible resource.
  */
 export const MODAL_CSS = `
-  :host { all: initial; }
+  ${THEME_CSS}
 
   .backdrop {
-    --page: #f4f6f8;
-    --sheet: #ffffff;
-    --ink: #18212b;
-    --graphite: #5c6773;
-    --rule: #d5dbe2;
-    --bar: #000000;
-    --bar-text: #f4f6f8;
-    --focus: #1d5fd6;
-    --low: #5c6773;
-    --medium: #a86a00;
-    --high: #c2410c;
-    --critical: #b42318;
-    --shade: rgb(24 33 43 / 42%);
-
     position: fixed;
     inset: 0;
     display: grid;
     place-items: center;
     background: var(--shade);
     color: var(--ink);
-    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .backdrop {
-      --page: #151b22;
-      --sheet: #1c232c;
-      --ink: #e6eaef;
-      --graphite: #9aa4af;
-      --rule: #2e3844;
-      --bar: #e6eaef;
-      --bar-text: #151b22;
-      --focus: #7fb0ff;
-      --low: #9aa4af;
-      --medium: #e0a53a;
-      --high: #f08a4b;
-      --critical: #f0645a;
-      --shade: rgb(0 0 0 / 55%);
-    }
+    font: 14px/1.5 var(--sans);
+    /* So scrollbars inside follow the theme too. */
+    color-scheme: light dark;
   }
 
   .panel {
