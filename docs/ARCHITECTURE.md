@@ -192,12 +192,21 @@ the paste is going into the message box. Pastes into search fields or settings
 forms are ignored. The code that inserts text is shared between the adapters,
 because all three sites accept text in one of two ways:
 
-- Rich text editors get text through `document.execCommand('insertText')`. The
-  function is deprecated, but it is still the only way to insert text through
-  the browser's own editing path, so the editor receives the
-  `beforeinput`/`input` events it expects and updates its own state. Changing
-  the DOM directly leaves the editor's state out of sync, and the text vanishes
-  the next time it re-renders.
+- Rich text editors get the text as a paste event that SafePrompt dispatches
+  itself, with the text attached as clipboard data. The editor handles it the
+  way it handles the user's own paste, in a single edit. ProseMirror (ChatGPT
+  and Claude) takes it directly. The older Quill editor on Gemini handles a
+  paste by moving focus to a hidden box and reading what the browser pasted
+  there, so SafePrompt fills that box itself. The interceptor recognises these
+  pastes and lets them through.
+
+  An editor that ignores the event gets the text through
+  `document.execCommand('insertText')` instead. That goes through the browser's
+  own editing path, so the editor's state stays in sync, but it makes a
+  separate edit for every line and the page reacts to each one. On ChatGPT a
+  650-line paste took long enough that Chrome reported the page as
+  unresponsive, which is why it is only the fallback.
+
 - Textareas get text through the native `value` setter on the element's
   prototype, followed by an `input` event. This is needed for React-controlled
   fields to pick up the change.

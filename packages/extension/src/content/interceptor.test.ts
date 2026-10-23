@@ -7,6 +7,7 @@ import {
   installInterceptor,
   type PasteDecision,
 } from './interceptor';
+import { insertText } from './insert';
 
 const SECRET = 'AWS_ACCESS_KEY_ID=AKIA2E0RZXQ7MLPKWV3B';
 const CLEAN = 'why does my build take four minutes';
@@ -394,6 +395,28 @@ describe('cancelPaste', () => {
     expect(() => {
       cancelPaste(decision);
     }).not.toThrow();
+  });
+});
+
+describe('the paste SafePrompt makes itself', () => {
+  it('is not held again, so the dialog does not come straight back', () => {
+    const onHold = vi.fn();
+    const remove = installInterceptor({ onHold, location: genericUrl });
+
+    const editor = document.createElement('div');
+    editor.setAttribute('contenteditable', 'true');
+    document.body.appendChild(editor);
+    let reached = '';
+    editor.addEventListener('paste', (event) => {
+      reached = event.clipboardData?.getData('text/plain') ?? '';
+      event.preventDefault();
+    });
+
+    insertText({ kind: 'contenteditable', element: editor }, SECRET);
+
+    expect(onHold).not.toHaveBeenCalled();
+    expect(reached).toBe(SECRET);
+    remove();
   });
 });
 

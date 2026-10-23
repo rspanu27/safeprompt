@@ -18,12 +18,71 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** 650 lines, the size of paste that froze ChatGPT. */
+const LONG = Array.from({ length: 650 }, (_, i) => `\tline ${i}`).join('\n');
+
 describe('insertText into a rich-text editor', () => {
-  it('goes through execCommand so the editor updates its own model', () => {
-    // ProseMirror, Lexical and Quill track the document themselves. Writing to
-    // the DOM behind their backs desynchronises the model and the text is
-    // dropped on the next render; execCommand produces the beforeinput/input
-    // pair they listen for.
+  it('hands the text over as a single paste, the way ProseMirror expects', () => {
+    // execCommand makes one edit per line break, which froze ChatGPT on a long
+    // paste. ProseMirror handles a paste event in one go and cancels it to
+    // say so.
+    const exec = vi.fn(() => true);
+    document.execCommand = exec;
+
+    const element = editable();
+    const received: string[] = [];
+    element.addEventListener('paste', (event) => {
+      received.push(event.clipboardData?.getData('text/plain') ?? '');
+      event.preventDefault();
+    });
+
+    expect(insertText({ kind: 'contenteditable', element }, LONG)).toBe(true);
+    expect(received).toEqual([LONG]);
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it('fills the hidden box an older Quill editor reads a paste from', () => {
+    // Gemini's Quill moves focus to a hidden box during a paste and reads it a
+    // moment later. A dispatched paste has no default action to fill it.
+    const exec = vi.fn(() => true);
+    document.execCommand = exec;
+
+    const container = document.createElement('div');
+    const element = editable();
+    const clipboard = document.createElement('div');
+    clipboard.className = 'ql-clipboard';
+    clipboard.setAttribute('contenteditable', 'true');
+    container.append(element, clipboard);
+    document.body.appendChild(container);
+    element.addEventListener('paste', () => {
+      clipboard.focus();
+    });
+
+    const text = '\tfirst <a> & b\n\nlast';
+    expect(insertText({ kind: 'contenteditable', element }, text)).toBe(true);
+
+    const rows = [...clipboard.children].map((p) => p.textContent);
+    expect(rows).toEqual(['\tfirst <a> & b', '', 'last']);
+    expect(clipboard.children[1]?.innerHTML).toBe('<br>');
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it('does not paste twice when the editor inserts without saying so', () => {
+    const exec = vi.fn(() => true);
+    document.execCommand = exec;
+
+    const element = editable();
+    element.addEventListener('paste', () => {
+      element.textContent = 'inserted';
+    });
+
+    expect(insertText({ kind: 'contenteditable', element }, 'hello')).toBe(true);
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it('falls back to execCommand when the editor ignores the paste', () => {
+    // It still goes through the browser's editing pipeline, so the editor
+    // sees the beforeinput/input pair and updates its own model.
     const exec = vi.fn(() => true);
     document.execCommand = exec;
 

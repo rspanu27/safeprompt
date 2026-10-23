@@ -77,13 +77,84 @@ function insertIntoValue(element: HTMLTextAreaElement | HTMLInputElement, text: 
 }
 
 /**
- * Deprecated, and still the right tool: it is the only call that inserts at the
- * caret through the browser's own editing pipeline, so ProseMirror, Lexical and
- * Quill all see the `beforeinput`/`input` pair they expect and update their
- * internal model. Writing to the DOM directly desynchronises that model, and
+ * Pastes SafePrompt dispatches itself. The interceptor lets these through, or
+ * the text the user just approved would be held a second time.
+ */
+const ownPastes = new WeakSet<Event>();
+
+export function isOwnPaste(event: Event): boolean {
+  return ownPastes.has(event);
+}
+
+/** One `<p>` per line, the shape a browser gives pasted plain text. */
+function paragraphs(text: string): HTMLElement[] {
+  return text.split('\n').map((line) => {
+    const p = document.createElement('p');
+    if (line === '') p.appendChild(document.createElement('br'));
+    else p.textContent = line;
+    return p;
+  });
+}
+
+/**
+ * Give the text to the editor as a paste, the way the clipboard would.
+ *
+ * This is the fast path. Inserting with execCommand turns every line break into
+ * a separate edit, and the page reacts to each one: a 650-line paste froze
+ * ChatGPT long enough for Chrome to offer to kill the tab, and took over 15
+ * seconds on Gemini. A paste event is a single edit however long the text is,
+ * and the editor treats it exactly like the user's own paste.
+ */
+function pasteInto(element: HTMLElement, text: string): boolean {
+  const data = new DataTransfer();
+  data.setData('text/plain', text);
+  const event = new ClipboardEvent('paste', {
+    clipboardData: data,
+    bubbles: true,
+    cancelable: true,
+  });
+  ownPastes.add(event);
+
+  const before = element.textContent;
+  element.dispatchEvent(event);
+
+  // ProseMirror (ChatGPT, Claude) handles the paste itself and says so.
+  if (event.defaultPrevented) return true;
+
+  // Older Quill (Gemini) moves focus to a hidden box, lets the browser paste
+  // into it, and reads the box a moment later. A dispatched paste has no
+  // default action, so fill the box the way the browser would.
+  const holder = document.activeElement;
+  if (
+    holder instanceof HTMLElement &&
+    holder.classList.contains('ql-clipboard') &&
+    holder.parentElement?.contains(element) === true
+  ) {
+    holder.replaceChildren(...paragraphs(text));
+    return true;
+  }
+
+  // An editor that inserted the text without saying so. Going on to the slow
+  // path would paste it twice.
+  return element.textContent !== before;
+}
+
+/**
+ * For an editor that ignores a dispatched paste, fall back to execCommand.
+ * Deprecated, but it inserts at the caret through the browser's own editing
+ * pipeline, so the editor sees the `beforeinput`/`input` pair it expects and
+ * updates its model. Writing to the DOM directly desynchronises that model, and
  * the editor throws the text away on its next render.
  */
 function insertIntoEditable(element: HTMLElement, text: string): boolean {
+  let pasted = false;
+  try {
+    pasted = pasteInto(element, text);
+  } catch {
+    // No DataTransfer or ClipboardEvent constructor. Use the slow path.
+  }
+  if (pasted) return true;
+
   if (
     typeof document.execCommand === 'function' &&
     document.execCommand('insertText', false, text)

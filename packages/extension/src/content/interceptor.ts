@@ -5,7 +5,7 @@ import { resolveAdapter } from './adapters';
 import { targetFromEvent } from './adapters/generic';
 import type { PasteTarget } from './adapters/types';
 import { failOpen } from './guard';
-import { captureSelection, insertText, type SelectionSnapshot } from './insert';
+import { captureSelection, insertText, isOwnPaste, type SelectionSnapshot } from './insert';
 
 export interface PasteDecision {
   /** Exactly what was on the clipboard, so "paste original" needs no round-trip. */
@@ -53,6 +53,10 @@ export function handlePaste(
   event: ClipboardEvent,
   options: InterceptorOptions,
 ): PasteDecision | null {
+  // The paste SafePrompt makes once the user has chosen. Holding it again would
+  // bring the dialog straight back.
+  if (isOwnPaste(event)) return null;
+
   const decision = failOpen<PasteDecision | null>(null, () => {
     const text = event.clipboardData?.getData('text/plain') ?? '';
     if (text.trim().length === 0) return null;
