@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.2 (2026-10-23)
+
+- Fixed the page freezing after choosing "Paste redacted" or "Paste original"
+  on a long paste. The text used to go in one line at a time, and on ChatGPT a
+  paste of a few hundred lines could take long enough for Chrome to call the
+  page unresponsive. It now goes in as a single paste, the same way as pressing
+  Ctrl+V.
+
 ## 1.0.1 (2026-10-10)
 
 - The extension is now called "SafePrompt: Paste Protection for AI Chats" in the
