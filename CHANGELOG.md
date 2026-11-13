@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 (2026-11-13)
+
+- The contact address shown in the extension is now rspanu.dev@gmail.com.
+- The icon's shield no longer pokes out of the bottom of its square.
+
 ## 1.0.2 (2026-10-23)
 
 - Fixed the page freezing after choosing "Paste redacted" or "Paste original"
