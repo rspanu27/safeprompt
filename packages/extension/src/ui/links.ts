@@ -8,7 +8,7 @@ export const REPO = 'https://github.com/rspanu27/safeprompt';
  * opens anything depends on the person's setup, and on a machine with no
  * default mail app it opens an empty window.
  */
-export const CONTACT_EMAIL = 'raul.safeprompt@gmail.com';
+export const CONTACT_EMAIL = 'rspanu.dev@gmail.com';
 
 /**
  * A new GitHub issue for a site whose message box can't be found, with the

@@ -56,7 +56,7 @@ describe('Popup', () => {
 
     expect(link?.getAttribute('href')).toContain('Message%20box%20not%20found%20on%20ChatGPT');
     expect(link?.getAttribute('rel')).toContain('noreferrer');
-    expect(container.textContent).toContain('or email raul.safeprompt@gmail.com');
+    expect(container.textContent).toContain('or email rspanu.dev@gmail.com');
   });
 
   it('asks for a reload when the tab is not running SafePrompt yet', async () => {
