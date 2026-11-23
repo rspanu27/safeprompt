@@ -1,5 +1,6 @@
 # SafePrompt
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/aiknefkpppckneffedkabdplmlmffdie?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/safeprompt-paste-protecti/aiknefkpppckneffedkabdplmlmffdie)
 [![CI](https://github.com/rspanu27/safeprompt/actions/workflows/ci.yml/badge.svg)](https://github.com/rspanu27/safeprompt/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
@@ -25,7 +26,8 @@ You can paste the redacted version, paste the original, or cancel. All of the
 scanning happens in your browser. There is no server, and nothing you paste is
 stored or sent anywhere.
 
-**[Try the scanner online](https://rspanu27.github.io/safeprompt/)** without
+**[Install it from the Chrome Web Store](https://chromewebstore.google.com/detail/safeprompt-paste-protecti/aiknefkpppckneffedkabdplmlmffdie)**,
+or **[try the scanner online](https://rspanu27.github.io/safeprompt/)** without
 installing anything. The page runs the same scanning code as the extension.
 
 ## What it detects
@@ -71,6 +73,12 @@ lower. The [threat model](docs/THREAT_MODEL.md) lists what SafePrompt does not
 catch.
 
 ## Install
+
+Install SafePrompt from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/safeprompt-paste-protecti/aiknefkpppckneffedkabdplmlmffdie).
+It updates itself when a new version is published.
+
+To install a release by hand instead:
 
 1. Download the `safeprompt-…-chrome.zip` file from the
    [latest release](https://github.com/rspanu27/safeprompt/releases/latest) and
